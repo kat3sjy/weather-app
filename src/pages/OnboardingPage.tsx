@@ -22,7 +22,7 @@ const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Spor
 const EXPERIENCE_LEVELS = ['Student', 'Early Career', 'Mid Career', 'Senior', 'Leader'];
 
 export default function OnboardingPage() {
-  const { user, setUser } = useUserStore() as { user: any; setUser: (user: any) => void };
+  const { user, registerUser } = useUserStore() as any;
   const [step, setStep] = useState(0);
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
@@ -104,7 +104,7 @@ export default function OnboardingPage() {
     }
     const passwordHash = await hashPassword(form.password);
     storeCredentials({ username: uname.toLowerCase(), passwordHash, createdAt: new Date().toISOString() });
-    setUser({
+    registerUser({
       id: crypto.randomUUID(),
       username: uname.toLowerCase(),
       firstName: form.firstName,

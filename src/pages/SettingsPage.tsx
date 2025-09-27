@@ -9,7 +9,7 @@ export default function SettingsPage() {
   if (!user) return <div className="card"><p>Login / onboard first.</p></div>;
 
   function update(field: string, value: string) {
-    setUser({...user, [field]: value});
+  setUser({...user, [field]: value});
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {

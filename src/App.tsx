@@ -6,6 +6,7 @@ import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
+import ConnectionsPage from './pages/ConnectionsPage';
 import { UserStoreProvider } from './store/userStore';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/connections" element={<ConnectionsPage />} />
           </Routes>
         </div>
         <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>
@@ -36,6 +38,7 @@ function NavBar() {
   const links = user ? [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
+    { to: '/connections', label: 'Connections' },
     { to: '/settings', label: 'Settings' }
   ] : [
     { to: '/', label: 'Home' },
