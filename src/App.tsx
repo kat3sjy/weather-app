@@ -39,6 +39,7 @@ export default function App() {
           <div className="container">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/profile/:username" element={<ProfilePage />} />
               <Route path="/explore" element={<ExplorePage />} />
