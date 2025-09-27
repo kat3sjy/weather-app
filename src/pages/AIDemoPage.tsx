@@ -69,6 +69,27 @@ const AIDemoPage: React.FC = () => {
 	}, []);
 
 	const clientModelHint = (import.meta?.env as any)?.VITE_GEMINI_MODEL as string | undefined;
+	const API_BASE = (import.meta?.env as any)?.VITE_API_BASE || 'http://localhost:5000';
+
+	// DB seed check state
+	const [dbUsers, setDbUsers] = useState<any[]>([]);
+	const [dbLoading, setDbLoading] = useState(false);
+	const [dbError, setDbError] = useState<string | null>(null);
+
+	const loadDbUsers = async () => {
+		setDbLoading(true);
+		setDbError(null);
+		try {
+			const res = await fetch(`${API_BASE}/api/profile?limit=12`);
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			const data = await res.json();
+			setDbUsers(Array.isArray(data) ? data : []);
+		} catch (e: any) {
+			setDbError(e?.message || 'Failed to load users');
+		} finally {
+			setDbLoading(false);
+		}
+	};
 
 	const anyLoading = analyzing || analysis === 'loading...' || score === 'loading...';
 
@@ -191,6 +212,28 @@ const AIDemoPage: React.FC = () => {
 								</div>
 							);
 						})}
+					</div>
+				)}
+			</section>
+
+			<section style={{ marginTop: 24 }}>
+				<h2>Database seed check</h2>
+				<p>Click to fetch recently created users from MongoDB.</p>
+				<button onClick={loadDbUsers} disabled={dbLoading}>
+					{dbLoading ? 'Loading…' : 'Load DB users'}
+				</button>
+				{dbError && <div style={{ color: 'red', marginTop: 8 }}>{dbError}</div>}
+				{dbUsers.length > 0 && (
+					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginTop: 12 }}>
+						{dbUsers.map((u: any) => (
+							<div key={u._id} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 10 }}>
+								<div style={{ fontWeight: 600 }}>{u.username || u.name}</div>
+								<div style={{ fontSize: 12, color: '#666' }}>{u.location || '—'}</div>
+								<div style={{ marginTop: 6, fontSize: 12 }}>
+									Tags: {(u.tags || []).join(', ') || '—'}
+								</div>
+							</div>
+						))}
 					</div>
 				)}
 			</section>
