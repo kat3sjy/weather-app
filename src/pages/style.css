@@ -23,17 +23,18 @@
 }
 
 .login .group {
-  height: 11vh; /* ~148px equivalent */
+  height: 11vh;
   left: 0;
   position: absolute;
   top: 0;
   width: 100%;
+  isolation: isolate;
+  z-index: 10;
 }
 
 .login .rectangle {
-  background-color: #1b1b3a;
-  border-radius: 0px 0px 4.3vw 4.3vw; /* ~75px equivalent */
-  height: 11vh; /* ~148px equivalent */
+  background-color: #2d2d6a; /* match signup header */
+  height: 100%;
   left: 0;
   position: absolute;
   top: 0;
@@ -42,11 +43,13 @@
 
 .login .navigation-container {
   position: absolute;
-  left: 23%; /* ~400px equivalent */
-  top: 3.3vh; /* ~49px equivalent */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  gap: 3.5vw; /* ~60px equivalent */
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  gap: 5vw;
 }
 
 .login .nav-button {
@@ -64,27 +67,24 @@
 .login .nav-text {
   color: #ffffff;
   font-family: "Jua", Helvetica;
-  font-size: 1.85vw; /* ~32px equivalent */
+  font-size: clamp(12px, 1.4vw, 24px);
   font-weight: 400;
-  letter-spacing: 0;
+  letter-spacing: clamp(1px, 0.14vw, 2.4px);
   line-height: normal;
-  white-space: nowrap;
-  pointer-events: none;
-  padding: 0 0.6vw; /* ~10px equivalent */
-  margin-bottom: 0px;
-  z-index: 2;
+  text-align: center;
   position: relative;
+  z-index: 2;
 }
 
 .login .nav-box {
   background-color: #4e4e9b;
-  border-radius: 0.87vw; /* ~15px equivalent */
-  height: 4vh; /* ~55px equivalent */
-  width: calc(100% + 2.3vw); /* ~40px equivalent */
-  min-width: 10.4vw; /* ~180px equivalent */
-  transition: background-color 0.2s ease;
-  margin-top: -3.6vh; /* ~-50px equivalent */
-  z-index: 1;
+  border-radius: clamp(4px, 0.6vw, 10px);
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(60px, 9vw, 155px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .login .nav-button:hover .nav-box {
@@ -97,23 +97,20 @@
   padding: 0;
   cursor: pointer;
   position: absolute;
-  right: 12%; /* ~1425px from left = ~82% from right */
-  top: 1.2vh; /* ~17px equivalent */
-  width: 6.5vw; /* ~113px equivalent */
-  height: 8.5vh; /* ~113px equivalent */
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10vw;
   transition: transform 0.2s ease;
 }
 
 .login .bell-button:hover {
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .login .image {
-  aspect-ratio: 1;
-  height: 100%;
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(20px, 2.8vh, 37px);
   object-fit: cover;
-  width: 100%;
-  pointer-events: none;
 }
 
 .login .profile-button {
@@ -122,71 +119,69 @@
   padding: 0;
   cursor: pointer;
   position: absolute;
-  right: 4%; /* ~1570px from left = ~91% from right */
-  top: 2.8vh; /* ~37px equivalent */
-  width: 4.2vw; /* ~73px equivalent */
-  height: 5.5vh; /* ~73px equivalent */
+  top: 50%;
+  transform: translateY(-50%);
+  right: 5vw;
   transition: transform 0.2s ease;
 }
 
 .login .profile-button:hover {
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .login .div {
-  background-color: #d9d9d9;
+  background-color: #8888b7; /* match signup */
   border-radius: 50%;
-  height: 100%;
-  width: 100%;
-  pointer-events: none;
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(20px, 2.8vh, 37px);
   transition: background-color 0.2s ease;
 }
 
 .login .profile-button:hover .div {
-  background-color: #e6e6e6;
+  background-color: #9a9ac9;
 }
 
 .login .rectangle-2 {
   background-color: #2d2d6a;
-  border-radius: 4.3vw; /* ~75px equivalent */
-  height: 54vh; /* ~716px equivalent */
-  left: 12.6%; /* ~218px equivalent */
+  border-radius: 4.3vw; /* Match signup card */
+  height: 60vh; /* Match signup height */
+  left: 12.6%; /* Same horizontal positioning */
   position: absolute;
-  top: 19.8vh; /* ~262px equivalent */
-  width: 74.7%; /* ~1291px equivalent */
+  top: 17vh; /* Match signup vertical positioning */
+  width: 74.7%; /* Same width */
 }
 
 .login .text-wrapper {
   color: #ffffff;
   font-family: "Jua", Helvetica;
-  font-size: clamp(32px, 4.6vw, 80px); /* Responsive title size */
+  font-size: clamp(32px, 4.6vw, 80px); /* Same as signup */
   font-weight: 400;
-  left: clamp(5%, 19.1%, 25%); /* Responsive positioning */
-  letter-spacing: clamp(2px, 0.46vw, 8px); /* Responsive spacing */
+  left: clamp(5%, 19.1%, 25%);
+  letter-spacing: clamp(2px, 0.46vw, 8px);
   line-height: normal;
   position: absolute;
-  top: clamp(18vh, 22vh, 26vh); /* Responsive vertical position */
+  top: clamp(18vh, 20vh, 24vh); /* Align with signup */
 }
 
 .login .username-label {
   color: #ffffff;
   font-family: "Jua", Helvetica;
-  font-size: clamp(14px, 1.8vw, 28px); /* Responsive with min/max bounds */
+  font-size: clamp(14px, 1.8vw, 28px);
   font-weight: 400;
   position: absolute;
-  left: clamp(5%, 19.2%, 25%); /* Better responsive alignment */
-  top: clamp(28vh, 31vh, 35vh); /* Responsive vertical positioning */
+  left: clamp(5%, 19.2%, 25%);
+  top: clamp(26vh, 29vh, 33vh); /* Match signup */
   text-transform: lowercase;
 }
 
 .login .rectangle-3 {
   background-color: #8888b7;
-  border-radius: clamp(8px, 1.2vw, 20px); /* Responsive border radius */
-  height: clamp(40px, 5.5vh, 70px); /* Better height scaling */
-  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  border-radius: clamp(8px, 1.2vw, 20px);
+  height: clamp(40px, 5.5vh, 70px);
+  left: clamp(5%, 19.2%, 25%);
   position: absolute;
-  top: clamp(31vh, 34vh, 38vh); /* Responsive vertical positioning */
-  width: clamp(60%, 61.6%, 90%); /* Better width scaling */
+  top: clamp(29vh, 32vh, 36vh); /* Match signup */
+  width: clamp(60%, 61.6%, 90%);
 }
 
 .login .username-input {
@@ -212,22 +207,22 @@
 .login .password-label {
   color: #ffffff;
   font-family: "Jua", Helvetica;
-  font-size: clamp(14px, 1.8vw, 28px); /* Responsive with min/max bounds */
+  font-size: clamp(14px, 1.8vw, 28px);
   font-weight: 400;
   position: absolute;
-  left: clamp(5%, 19.2%, 25%); /* Better responsive alignment */
-  top: clamp(40vh, 43vh, 47vh); /* Responsive vertical positioning */
+  left: clamp(5%, 19.2%, 25%);
+  top: clamp(36vh, 39vh, 43vh); /* Match signup */
   text-transform: lowercase;
 }
 
 .login .rectangle-4 {
   background-color: #8888b7;
-  border-radius: clamp(8px, 1.2vw, 20px); /* Responsive border radius */
-  height: clamp(40px, 5.5vh, 70px); /* Better height scaling */
-  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  border-radius: clamp(8px, 1.2vw, 20px);
+  height: clamp(40px, 5.5vh, 70px);
+  left: clamp(5%, 19.2%, 25%);
   position: absolute;
-  top: clamp(43vh, 46vh, 50vh); /* Responsive vertical positioning */
-  width: clamp(60%, 61.6%, 90%); /* Better width scaling */
+  top: clamp(39vh, 42vh, 46vh); /* Match signup */
+  width: clamp(60%, 61.6%, 90%);
 }
 
 .login .password-input {
@@ -261,22 +256,22 @@
 }
 
 .login .back-button {
-  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
-  top: clamp(53vh, 56vh, 60vh); /* Responsive vertical position */
-  width: clamp(80px, 9vw, 140px); /* Better button width scaling */
-  height: clamp(35px, 4.2vh, 55px); /* Better height scaling */
+  left: clamp(5%, 19.2%, 25%);
+  top: clamp(59vh, 62vh, 66vh); /* Match signup */
+  width: clamp(80px, 9vw, 140px);
+  height: clamp(35px, 4.2vh, 55px);
 }
 
 .login .next-button {
-  right: clamp(5%, 19.2%, 25%); /* Responsive positioning */
-  top: clamp(53vh, 56vh, 60vh); /* Responsive vertical position */
-  width: clamp(80px, 9vw, 140px); /* Better button width scaling */
-  height: clamp(35px, 4.2vh, 55px); /* Better height scaling */
+  right: clamp(5%, 19.2%, 25%);
+  top: clamp(59vh, 62vh, 66vh); /* Match signup */
+  width: clamp(80px, 9vw, 140px);
+  height: clamp(35px, 4.2vh, 55px);
 }
 
 .login .rectangle-5 {
   background-color: #4e4e9b;
-  border-radius: 0.87vw; /* ~15px equivalent */
+  border-radius: clamp(6px, 0.87vw, 15px); /* Match signup radius */
   height: 100%;
   width: 100%;
   transition: background-color 0.2s ease;
@@ -284,7 +279,7 @@
 
 .login .rectangle-6 {
   background-color: #4e4e9b;
-  border-radius: 0.87vw; /* ~15px equivalent */
+  border-radius: clamp(6px, 0.87vw, 15px); /* Match signup radius */
   height: 100%;
   width: 100%;
   transition: background-color 0.2s ease;
@@ -292,12 +287,13 @@
 
 .login .back-button:hover .rectangle-5,
 .login .next-button:hover .rectangle-6 {
-  background-color: #6b6bb8;
+  background-color: #5e5eab; /* Match signup hover */
 }
 
 .login .back-button:disabled .rectangle-5,
 .login .next-button:disabled .rectangle-6 {
-  background-color: #666;
+  background-color: #3e3e8b; /* Match signup disabled */
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -359,47 +355,28 @@
 .login .error-message {
   color: #ff4444;
   font-family: "Jua", Helvetica;
-  font-size: 14px; /* Scaled appropriately */
+  font-size: clamp(12px, 1.4vw, 20px); /* Match signup */
   font-weight: 400;
   position: absolute;
-  left: 202px;
-  top: 415px;
+  left: clamp(5%, 19.2%, 25%);
+  top: clamp(67vh, 70vh, 74vh); /* Below buttons like signup */
   letter-spacing: 1px;
   background: rgba(255, 68, 68, 0.1);
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: clamp(4px, 0.6vh, 8px) clamp(8px, 1vw, 16px);
+  border-radius: clamp(4px, 0.4vw, 8px);
   border-left: 2px solid #ff4444;
+  max-width: clamp(60%, 61.6%, 90%);
+  word-wrap: break-word;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 1024px) {
-  .login .main-container {
-    max-width: 90%;
-    transform: scale(0.9);
-    transform-origin: top center;
-  }
-}
-
+/* Responsive adjustments (no scaling transforms, mirror signup) */
+@media (max-width: 1024px) { .login .navigation-container { gap: 4vw; } }
 @media (max-width: 768px) {
-  .login .main-container {
-    max-width: 95%;
-    transform: scale(0.7);
-    transform-origin: top center;
-  }
-  
-  .login {
-    padding-top: 0.5rem;
-  }
+  .login .navigation-container { gap: 3vw; }
+  .login .rectangle-2 { height: 65vh; }
+  .login .nav-text { font-size: 12px; }
 }
-
 @media (max-width: 480px) {
-  .login .main-container {
-    max-width: 98%;
-    transform: scale(0.5);
-    transform-origin: top center;
-  }
-  
-  .login {
-    padding-top: 0.2rem;
-  }
+  .login .navigation-container { flex-direction: column; gap: 1vh; }
+  .login .rectangle-2 { left: 5%; width: 90%; height: 70vh; }
 }
