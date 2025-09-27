@@ -8,7 +8,12 @@ export default function HomePage() {
       <section className="card">
         <h1>Welcome {user?.firstName ? user.firstName : '👋'} </h1>
         <p>Connect with peers in gaming, tech conventions, and sports who share your journey. Build mentorship circles, discover events, and amplify each other.</p>
-        {!user && <Link to="/onboarding"><button>Get Started</button></Link>}
+        {!user && (
+          <div style={{display:'flex', gap:'1rem', marginTop:'1rem'}}>
+            <Link to="/login"><button style={{background:'#ff4fa3'}}>Sign In</button></Link>
+            <Link to="/onboarding"><button>Create Account</button></Link>
+          </div>
+        )}
         {user && <Link to={`/profile/${user.username}`}><button>Your Profile</button></Link>}
       </section>
       <section className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))'}}>

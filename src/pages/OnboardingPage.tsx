@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUserStore } from '../store/userStore';
 import { generateUsername } from '../utils/generateUsername';
 import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
+import { handleImageUpload, validateImageFile } from '../utils/imageUpload';
 
 interface FormState {
   username: string;
@@ -14,6 +15,7 @@ interface FormState {
   experienceLevel: string;
   goals: string;
   bio: string;
+  profilePicture: string;
 }
 
 const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Sports Analytics', 'Sports Performance', 'VR/AR', 'Web Dev'];
@@ -25,11 +27,13 @@ export default function OnboardingPage() {
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
     username: existingCreds?.username || '', password: '', passwordConfirm: '',
-    firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: ''
+    firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: '',
+    profilePicture: ''
   });
   const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [imageError, setImageError] = useState('');
 
   function toggleArea(area: string) {
     setForm((f: FormState) => ({
@@ -42,6 +46,25 @@ export default function OnboardingPage() {
 
   function next() { setStep((s: number) => Math.min(s + 1, steps.length - 1)); }
   function prev() { setStep((s: number) => Math.max(s - 1, 0)); }
+
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (validation) {
+      setImageError(validation);
+      return;
+    }
+
+    try {
+      setImageError('');
+      const dataUrl = await handleImageUpload(file);
+      setForm((f: FormState) => ({ ...f, profilePicture: dataUrl }));
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : 'Failed to upload image');
+    }
+  }
 
   // Step validation logic
   const stepValid = (current: number): boolean => {
@@ -91,6 +114,7 @@ export default function OnboardingPage() {
       experienceLevel: form.experienceLevel,
       bio: form.bio,
       location: form.location,
+      avatarUrl: form.profilePicture || undefined,
       createdAt: new Date().toISOString()
     });
   }
@@ -235,7 +259,7 @@ export default function OnboardingPage() {
       </FormRow>
     </div>,
     <div key="step-bio">
-      <h2>Bio</h2>
+      <h2>Bio & Profile Picture</h2>
       <FormRow label="About You">
         <textarea
           rows={5}
@@ -246,6 +270,38 @@ export default function OnboardingPage() {
           }
           placeholder="Share your journey, wins, and what you want to learn."
         />
+      </FormRow>
+      <FormRow label="Profile Picture (Optional)">
+        <div style={{display:'flex', flexDirection:'column', gap:'.75rem'}}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{padding:'.5rem'}}
+          />
+          {imageError && (
+            <p style={{color:'#ff9bd2', fontSize:'.7rem', margin:0}}>{imageError}</p>
+          )}
+          {form.profilePicture && (
+            <div style={{display:'flex', alignItems:'center', gap:'.75rem'}}>
+              <img 
+                src={form.profilePicture} 
+                alt="Preview" 
+                style={{width:'60px', height:'60px', borderRadius:'50%', objectFit:'cover'}}
+              />
+              <button 
+                type="button" 
+                onClick={() => setForm((f: FormState) => ({ ...f, profilePicture: '' }))}
+                style={{fontSize:'.7rem', padding:'.25rem .5rem'}}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+          <p style={{fontSize:'.65rem', opacity:0.7, margin:0}}>
+            Accepted formats: JPG, PNG, GIF. Max size: 5MB
+          </p>
+        </div>
       </FormRow>
       <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
     </div>
