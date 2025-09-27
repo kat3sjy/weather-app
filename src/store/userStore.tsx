@@ -21,6 +21,10 @@ interface UserState {
   setUser: (u: User) => void;
   clearUser: () => void;
   logout: () => void; // alias for clarity
+  friends: string[];
+  addFriend: (username: string) => void;
+  removeFriend: (username: string) => void;
+  isFriend: (username: string) => boolean;
 }
 
 const STORAGE_KEY = 'technova_user_v1';
@@ -35,7 +39,7 @@ interface ClearUser {
 
 interface UseUserBase extends UserState {}
 
-const useUserBase = create((set: (partial: Partial<UserState>) => void): UserState => ({
+const useUserBase = create((set: (partial: Partial<UserState>) => void, get: () => UserState): UserState => ({
   user: null,
   setUser: ((u: User) => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); } catch {}
@@ -48,7 +52,20 @@ const useUserBase = create((set: (partial: Partial<UserState>) => void): UserSta
   logout: () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     set({ user: null });
-  }
+  },
+  friends: [],
+  addFriend: (username: string) => {
+    const u = username.trim();
+    if (!u) return;
+    const me = get().user?.username;
+    if (u === me) return;
+    if (get().friends.includes(u)) return;
+    set({ friends: [...get().friends, u] });
+  },
+  removeFriend: (username: string) => {
+    set({ friends: get().friends.filter(x => x !== username) });
+  },
+  isFriend: (username: string) => get().friends.includes(username),
 }));
 
 const UserStoreContext = createContext(null as unknown as ReturnType<typeof useUserBase>);
