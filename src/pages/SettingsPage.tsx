@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useUserStore } from '../store/userStore';
 import { handleImageUpload, validateImageFile } from '../utils/imageUpload';
+import { getCountries, getCities } from '../utils/locationData';
 
 export default function SettingsPage() {
   const { user, setUser, logout } = useUserStore() as any;
@@ -9,7 +10,30 @@ export default function SettingsPage() {
   if (!user) return <div className="card"><p>Login / onboard first.</p></div>;
 
   function update(field: string, value: string) {
-  setUser({...user, [field]: value});
+    setUser({...user, [field]: value});
+  }
+
+  // Derive existing country/city from stored location "City, Country" or fallback
+  const { initialCountry, initialCity } = useMemo(() => {
+    if (!user.location) return { initialCountry: '', initialCity: '' };
+  const parts = user.location.split(',').map((p: string) => p.trim());
+    if (parts.length === 2) return { initialCity: parts[0], initialCountry: parts[1] };
+    // If only one part, attempt to classify as country
+    return { initialCountry: user.location, initialCity: '' };
+  }, [user.location]);
+  const [country, setCountry] = useState(initialCountry);
+  const [city, setCity] = useState(initialCity);
+
+  function handleCountryChange(val: string) {
+    setCountry(val);
+    setCity('');
+    const combined = val ? val : '';
+    update('location', combined);
+  }
+  function handleCityChange(val: string) {
+    setCity(val);
+    const combined = val ? `${val}, ${country}` : country;
+    update('location', combined);
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -77,8 +101,18 @@ export default function SettingsPage() {
           <input value={user.lastName} onChange={e=>update('lastName', e.target.value)} />
         </div>
         <div className="form-row">
-          <label>Location</label>
-          <input value={user.location} onChange={e=>update('location', e.target.value)} />
+          <label>Country</label>
+          <select value={country} onChange={e => handleCountryChange(e.target.value)}>
+            <option value="">Select country...</option>
+            {getCountries().map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="form-row">
+            <label>State / Province / Region</label>
+            <select value={city} disabled={!country} onChange={e => handleCityChange(e.target.value)}>
+              <option value="">{country ? 'Select region...' : 'Select country first'}</option>
+              {getCities(country).map(ct => <option key={ct} value={ct}>{ct}</option>)}
+            </select>
         </div>
         <div className="form-row">
           <label>Bio</label>

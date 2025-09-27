@@ -35,6 +35,7 @@ interface UserState {
   cancelConnectionRequest: (targetId: string) => void;
   removeConnection: (targetId: string) => void;
   getUserByUsername: (username: string) => User | undefined;
+  isUsernameAvailable: (username: string) => boolean;
 }
 
 const STORAGE_KEY_SINGLE = 'technova_user_v1'; // legacy single-user key
@@ -67,8 +68,14 @@ const useUserBase = create((set: (partial: Partial<UserState>) => void, get: () 
   },
   registerUser: (u: User) => {
     const state = get();
+    const uname = u.username.trim().toLowerCase();
+    const exists = state.users.some(ex => ex.username.toLowerCase() === uname);
+    if (exists) {
+      throw new Error('USERNAME_TAKEN');
+    }
     const withDefaults: User = {
       ...u,
+      username: uname,
       connections: u.connections || [],
       incomingRequests: u.incomingRequests || [],
       outgoingRequests: u.outgoingRequests || [],
@@ -205,6 +212,12 @@ const useUserBase = create((set: (partial: Partial<UserState>) => void, get: () 
   getUserByUsername: (username: string) => {
     const { users } = get();
     return users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  },
+  isUsernameAvailable: (username: string) => {
+    const { users } = get();
+    const uname = username.trim().toLowerCase();
+    if (!uname) return false;
+    return !users.some(u => u.username.toLowerCase() === uname);
   }
 }));
 
@@ -239,7 +252,7 @@ export function UserStoreProvider({ children }: ProviderProps) {
           }));
           // Seed sample users if only one user exists to allow connecting
           if (users.length < 2) {
-            const samples: User[] = [
+            const samplesRaw: User[] = [
               {
                 id: 'sample-1', username: 'aisha', firstName: 'Aisha', lastName: 'K', areas: ['Esports'], goals: 'Grow shoutcasting skills',
                 experienceLevel: 'Early Career', bio: 'Caster & community builder.', location: 'Remote', createdAt: new Date().toISOString(),
@@ -251,6 +264,8 @@ export function UserStoreProvider({ children }: ProviderProps) {
                 connections: [], incomingRequests: [], outgoingRequests: [], contact: 'naomi@example.com'
               }
             ];
+            const existingNames = new Set(users.map(u => u.username.toLowerCase()));
+            const samples = samplesRaw.filter(s => !existingNames.has(s.username.toLowerCase()));
             users = [...users, ...samples];
           }
           persist({ users, currentUserId });
@@ -268,8 +283,7 @@ export function UserStoreProvider({ children }: ProviderProps) {
             connections: [], incomingRequests: [], outgoingRequests: [], contact: `${legacy.username}@example.com`
           };
           // seed samples
-          const samples: User[] = [
-            migrated,
+          const sampleSeeds: User[] = [
             {
               id: 'sample-1', username: 'aisha', firstName: 'Aisha', lastName: 'K', areas: ['Esports'], goals: 'Grow shoutcasting skills',
               experienceLevel: 'Early Career', bio: 'Caster & community builder.', location: 'Remote', createdAt: new Date().toISOString(),
@@ -281,12 +295,15 @@ export function UserStoreProvider({ children }: ProviderProps) {
               connections: [], incomingRequests: [], outgoingRequests: [], contact: 'naomi@example.com'
             }
           ];
-          persist({ users: samples, currentUserId: migrated.id });
-          useUserBase.setState({ users: samples, user: migrated });
+          const existingNames = new Set([migrated.username.toLowerCase()]);
+          const filtered = sampleSeeds.filter(s => !existingNames.has(s.username.toLowerCase()));
+          const combined = [migrated, ...filtered];
+          persist({ users: combined, currentUserId: migrated.id });
+          useUserBase.setState({ users: combined, user: migrated });
         }
       } else {
         // Initial seed (no users yet) create sample directory only; user remains null until onboarding
-        const samples: User[] = [
+        const rawSamples: User[] = [
           {
             id: 'sample-1', username: 'aisha', firstName: 'Aisha', lastName: 'K', areas: ['Esports'], goals: 'Grow shoutcasting skills',
             experienceLevel: 'Early Career', bio: 'Caster & community builder.', location: 'Remote', createdAt: new Date().toISOString(),
@@ -298,8 +315,9 @@ export function UserStoreProvider({ children }: ProviderProps) {
             connections: [], incomingRequests: [], outgoingRequests: [], contact: 'naomi@example.com'
           }
         ];
-        persist({ users: samples, currentUserId: null });
-        useUserBase.setState({ users: samples, user: null });
+        const deduped = rawSamples.filter((s, idx, arr) => idx === arr.findIndex(o => o.username.toLowerCase() === s.username.toLowerCase()));
+        persist({ users: deduped, currentUserId: null });
+        useUserBase.setState({ users: deduped, user: null });
       }
     } catch {}
   }, []);

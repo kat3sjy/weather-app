@@ -3,6 +3,7 @@ import { useUserStore } from '../store/userStore';
 import { generateUsername } from '../utils/generateUsername';
 import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
 import { handleImageUpload, validateImageFile } from '../utils/imageUpload';
+import { getCountries, getCities } from '../utils/locationData';
 
 interface FormState {
   username: string;
@@ -10,7 +11,9 @@ interface FormState {
   passwordConfirm: string;
   firstName: string;
   lastName: string;
-  location: string;
+  country: string;
+  city: string;
+  location: string; // derived country + city for backward compatibility
   areas: string[];
   experienceLevel: string;
   goals: string;
@@ -19,7 +22,7 @@ interface FormState {
 }
 
 const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Sports Analytics', 'Sports Performance', 'VR/AR', 'Web Dev'];
-const EXPERIENCE_LEVELS = ['Student', 'Early Career', 'Mid Career', 'Senior', 'Leader'];
+const EXPERIENCE_LEVELS = ['Student', 'Newbie', 'Amateur', 'Intermediate', 'Pro'];
 
 export default function OnboardingPage() {
   const { user, registerUser, getUserByUsername, users } = useUserStore() as any;
@@ -27,7 +30,7 @@ export default function OnboardingPage() {
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
     username: existingCreds?.username || '', password: '', passwordConfirm: '',
-    firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: '',
+    firstName: '', lastName: '', country: '', city: '', location: '', areas: [], experienceLevel: '', goals: '', bio: '',
     profilePicture: ''
   });
   const [locationSelect, setLocationSelect] = useState('');
@@ -76,8 +79,8 @@ export default function OnboardingPage() {
         const pwOk = form.password.length > 0 && validatePassword(form.password).length === 0 && form.password === form.passwordConfirm;
         return unameOk && pwOk;
       }
-      case 1: // basic info
-        return !!(form.firstName.trim() && form.lastName.trim() && form.location.trim());
+      case 1: // basic info (country + city required)
+        return !!(form.firstName.trim() && form.lastName.trim() && form.country && form.city);
       case 2: // focus areas
         return form.areas.length > 0;
       case 3: // experience & goals
@@ -104,19 +107,29 @@ export default function OnboardingPage() {
     if (pwdProblems.length || mismatch) { setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]); return; }
     const passwordHash = await hashPassword(form.password);
     storeCredentials({ username: uname.toLowerCase(), passwordHash, createdAt: new Date().toISOString() });
-    registerUser({
-      id: crypto.randomUUID(),
-      username: uname.toLowerCase(),
-      firstName: form.firstName,
-      lastName: form.lastName,
-      areas: form.areas,
-      goals: form.goals,
-      experienceLevel: form.experienceLevel,
-      bio: form.bio,
-      location: form.location,
-      avatarUrl: form.profilePicture || undefined,
-      createdAt: new Date().toISOString()
-    });
+    try {
+      const combinedLocation = form.country && form.city ? `${form.city}, ${form.country}` : form.country || form.city || '';
+      registerUser({
+        id: crypto.randomUUID(),
+        username: uname.toLowerCase(),
+        firstName: form.firstName,
+        lastName: form.lastName,
+        areas: form.areas,
+        goals: form.goals,
+        experienceLevel: form.experienceLevel,
+        bio: form.bio,
+        location: combinedLocation,
+        avatarUrl: form.profilePicture || undefined,
+        createdAt: new Date().toISOString()
+      });
+    } catch (e: any) {
+      if (e?.message === 'USERNAME_TAKEN') {
+        setUsernameError('Username already taken');
+      } else {
+        setUsernameError('Unable to create user');
+      }
+      return;
+    }
   }
 
   const steps = [
@@ -202,15 +215,32 @@ export default function OnboardingPage() {
           }
         />
       </FormRow>
-      <FormRow label="Location">
-        <input
-          value={form.location}
+      <FormRow label="Country">
+        <select
+          value={form.country}
           required
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setForm((f: FormState) => ({ ...f, location: e.target.value }))
-          }
-          placeholder="City / Region"
-        />
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            const country = e.target.value;
+            setForm(f => ({ ...f, country, city: '', location: country }));
+          }}
+        >
+          <option value="">Select country...</option>
+          {getCountries().map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </FormRow>
+      <FormRow label="State / Province / Region">
+        <select
+          value={form.city}
+          required
+          disabled={!form.country}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            const city = e.target.value;
+            setForm(f => ({ ...f, city, location: city ? `${city}, ${f.country}` : f.country }));
+          }}
+        >
+          <option value="">{form.country ? 'Select region...' : 'Select country first'}</option>
+          {getCities(form.country).map(city => <option key={city} value={city}>{city}</option>)}
+        </select>
       </FormRow>
     </div>,
     <div key="step-areas">
