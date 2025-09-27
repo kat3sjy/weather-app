@@ -30,7 +30,6 @@ export default function OnboardingPage() {
     firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: '',
     profilePicture: ''
   });
-  // Track the selection in the location dropdown separately so we can support a custom location.
   const [locationSelect, setLocationSelect] = useState('');
   const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
   const [usernameTouched, setUsernameTouched] = useState(false);
@@ -91,19 +90,12 @@ export default function OnboardingPage() {
   };
 
   async function handleSubmit() {
-    // Final guard all steps valid
     if (![0,1,2,3,4].every(stepValid)) return;
     const uname = form.username.trim();
-    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(uname)) {
-      setUsernameError('Invalid username');
-      return;
-    }
+    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(uname)) { setUsernameError('Invalid username'); return; }
     const pwdProblems = validatePassword(form.password);
     const mismatch = form.password !== form.passwordConfirm;
-    if (pwdProblems.length || mismatch) {
-      setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]);
-      return;
-    }
+    if (pwdProblems.length || mismatch) { setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]); return; }
     const passwordHash = await hashPassword(form.password);
     storeCredentials({ username: uname.toLowerCase(), passwordHash, createdAt: new Date().toISOString() });
     registerUser({
@@ -305,6 +297,7 @@ export default function OnboardingPage() {
           </p>
         </div>
       </FormRow>
+      <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
       <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
     </div>
   ];
