@@ -7,8 +7,7 @@ export default function HomePage() {
     <div className="grid" style={{gap:'2rem'}}>
       <section className="card">
         <h1>Welcome {user?.firstName ? user.firstName : '👋'} </h1>
-        <p>Connect with others through mentorship, events, and group chats.</p>
-        {!user && <Link to="/onboarding"><button>Get Started</button></Link>}
+
         {user && <Link to={`/profile/${user.username}`}><button>Your Profile</button></Link>}
         <span style={{ marginLeft: 8 }} />
         <Link to="/notifications"><button>Messages</button></Link>

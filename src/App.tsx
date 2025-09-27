@@ -5,6 +5,7 @@ import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
+import LoginPage from './pages/LoginPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
 import FriendsPage from './pages/FriendsPage';
@@ -17,6 +18,7 @@ export default function App() {
         <div className="container">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/explore" element={<ExplorePage />} />
@@ -35,12 +37,14 @@ function NavBar() {
   const user = useUserStore(s => s.user);
   const logout = useUserStore(s => s.logout);
   const navigate = useNavigate();
-  const links = [
+  const links = user ? [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
-    { to: '/friends', label: 'Friends' },
-    { to: '/onboarding', label: 'Onboarding' },
     { to: '/settings', label: 'Settings' }
+  ] : [
+    { to: '/', label: 'Home' },
+    { to: '/login', label: 'Sign In' },
+    { to: '/onboarding', label: 'Join Now' }
   ];
   return (
     <nav>
