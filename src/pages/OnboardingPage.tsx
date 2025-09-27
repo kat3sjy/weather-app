@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useUserStore } from '../store/userStore';
 import { generateUsername } from '../utils/generateUsername';
+import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
 
 interface FormState {
   firstName: string;
@@ -10,6 +11,9 @@ interface FormState {
   experienceLevel: string;
   bio: string;
   location: string;
+  username?: string;
+  password?: string;
+  passwordConfirm?: string;
 }
 
 const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Sports Analytics', 'Sports Performance', 'VR/AR', 'Web Dev'];
@@ -18,9 +22,13 @@ const EXPERIENCE_LEVELS = ['Student', 'Early Career', 'Mid Career', 'Senior', 'L
 export default function OnboardingPage() {
   const { user, setUser } = useUserStore() as { user: any; setUser: (user: any) => void };
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', areas: [], goals: '', experienceLevel: '', bio: '', location: ''
-  } as FormState);
+  const existingCreds = getStoredCredentials();
+  const [form, setForm] = useState<FormState>({
+    firstName: '', lastName: '', areas: [], goals: '', experienceLevel: '', bio: '', location: '',
+    username: existingCreds?.username || '', password: '', passwordConfirm: ''
+  });
+  const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
+  const [usernameTouched, setUsernameTouched] = useState(false);
 
   function toggleArea(area: string) {
     setForm((f: FormState) => ({
@@ -34,11 +42,23 @@ export default function OnboardingPage() {
   function next() { setStep((s: number) => Math.min(s + 1, steps.length - 1)); }
   function prev() { setStep((s: number) => Math.max(s - 1, 0)); }
 
-  function handleSubmit() {
-    const username = generateUsername(form.firstName, form.lastName);
+  async function handleSubmit() {
+    const forcedUsername = (form.username && form.username.trim()) || generateUsername(form.firstName, form.lastName);
+    // Basic username sanitation
+    const safeUsername = forcedUsername.replace(/[^a-zA-Z0-9_\-]/g,'').toLowerCase();
+    let passwordHash = '';
+    if (form.password) {
+      const issues = validatePassword(form.password);
+      if (issues.length || form.password !== form.passwordConfirm) {
+        setPwdIssues([...(issues.length?issues:[]), ...(form.password !== form.passwordConfirm? ['Passwords do not match'] : [])]);
+        return;
+      }
+      passwordHash = await hashPassword(form.password);
+      storeCredentials({ username: safeUsername, passwordHash, createdAt: new Date().toISOString() });
+    }
     setUser({
       id: crypto.randomUUID(),
-      username,
+      username: safeUsername,
       firstName: form.firstName,
       lastName: form.lastName,
       areas: form.areas,
@@ -140,7 +160,56 @@ export default function OnboardingPage() {
           placeholder="Share your journey, wins, and what you want to learn."
         />
       </FormRow>
-      <button onClick={handleSubmit} disabled={!form.firstName || !form.areas.length || !form.experienceLevel}>Finish & Create Profile</button>
+    </div>,
+    <div key="s5">
+      <h2>Account Credentials</h2>
+      <FormRow label="Username (optional – we can auto-generate)">
+        <input
+          value={form.username || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setUsernameTouched(true);
+            setForm((f: FormState) => ({ ...f, username: e.target.value }));
+          }}
+          placeholder="yourhandle"
+        />
+      </FormRow>
+      {usernameTouched && !form.username && <p style={{color:'#ff9bd2', fontSize:'.75rem'}}>Will auto-generate if left blank.</p>}
+      <FormRow label="Password (optional for now)">
+        <input
+          type="password"
+          value={form.password || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            const val = e.target.value;
+            setForm((f: FormState) => ({ ...f, password: val }));
+            setPwdIssues(validatePassword(val));
+          }}
+          placeholder="Strong password"
+          autoComplete="new-password"
+        />
+      </FormRow>
+      <FormRow label="Confirm Password">
+        <input
+          type="password"
+          value={form.passwordConfirm || ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            const val = e.target.value;
+            setForm((f: FormState) => ({ ...f, passwordConfirm: val }));
+            if (form.password) {
+              setPwdIssues((prev: string[]) => prev.filter((p: string) => p !== 'Passwords do not match'));
+              if (val !== form.password) setPwdIssues((prev: string[]) => [...prev.filter((p: string) => p !== 'Passwords do not match'), 'Passwords do not match']);
+            }
+          }}
+          placeholder="Re-enter password"
+          autoComplete="new-password"
+        />
+      </FormRow>
+      {pwdIssues.length > 0 && (
+        <ul style={{marginTop:'.5rem', paddingLeft:'1.1rem', color:'#ff9bd2', fontSize:'.7rem'}}>
+          {pwdIssues.map((i: string) => <li key={i}>{i}</li>)}
+        </ul>
+      )}
+      <button onClick={handleSubmit} disabled={!form.firstName || !form.areas.length || !form.experienceLevel || (form.password ? (pwdIssues.length>0 || form.password !== form.passwordConfirm) : false)}>Finish & Create Profile</button>
+      <p style={{opacity:.6, fontSize:'.65rem', marginTop:'.75rem'}}>Passwords are stored only as a local hashed prototype credential. Not production auth.</p>
     </div>
   ];
 
