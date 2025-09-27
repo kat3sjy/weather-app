@@ -7,6 +7,7 @@ import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import ConnectionsPage from './pages/ConnectionsPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
@@ -33,20 +34,22 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 export default function App() {
   return (
     <UserStoreProvider>
-      <ErrorBoundary>
-        <div>
-          <NavBar />
-          <div className="container">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
-              <Route path="/profile/:username" element={<ProfilePage />} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/friends" element={<FriendsPage />} />
-              <Route path="/ai-demo" element={<AIDemoPage />} />
+
+      <div>
+        <NavBar />
+        <div className="container">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/profile/:username" element={<ProfilePage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/connections" element={<ConnectionsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/ai-demo" element={<AIDemoPage />} />
             </Routes>
           </div>
           <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>
@@ -70,7 +73,7 @@ function NavBar() {
   const publicLinks = [
     { to: '/', label: 'Home' },
     { to: '/login', label: 'Sign In' },
-    { to: '/onboarding', label: 'Join Now' }
+    { to: '/signup', label: 'Join Now' }
   ];
   const links = user ? authedLinks : publicLinks;
   return (

@@ -120,7 +120,7 @@ export default function LoginPage() {
               <div className="nav-text">SIGN IN</div>
               <div className="nav-box" />
             </button>
-            <button className="nav-button" onClick={() => navigate('/onboarding')}>
+            <button className="nav-button" onClick={() => navigate('/signup')}>
               <div className="nav-text">JOIN NOW</div>
               <div className="nav-box" />
             </button>
