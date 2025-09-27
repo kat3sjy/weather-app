@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useUserStore } from '../store/userStore';
 import { generateUsername } from '../utils/generateUsername';
 import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
-import { handleImageUpload, validateImageFile } from '../utils/imageUpload';
 
 interface FormState {
   username: string;
@@ -15,7 +14,8 @@ interface FormState {
   experienceLevel: string;
   goals: string;
   bio: string;
-  profilePicture: string;
+
+
 }
 
 const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Sports Analytics', 'Sports Performance', 'VR/AR', 'Web Dev'];
@@ -26,14 +26,14 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
-    username: existingCreds?.username || '', password: '', passwordConfirm: '',
-    firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: '',
-    profilePicture: ''
+
   });
+  // Track the selection in the location dropdown separately so we can support a custom location.
+  const [locationSelect, setLocationSelect] = useState('');
   const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [usernameError, setUsernameError] = useState('');
-  const [imageError, setImageError] = useState('');
+
 
   function toggleArea(area: string) {
     setForm((f: FormState) => ({
@@ -47,63 +47,7 @@ export default function OnboardingPage() {
   function next() { setStep((s: number) => Math.min(s + 1, steps.length - 1)); }
   function prev() { setStep((s: number) => Math.max(s - 1, 0)); }
 
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    const validation = validateImageFile(file);
-    if (validation) {
-      setImageError(validation);
-      return;
-    }
-
-    try {
-      setImageError('');
-      const dataUrl = await handleImageUpload(file);
-      setForm((f: FormState) => ({ ...f, profilePicture: dataUrl }));
-    } catch (error) {
-      setImageError(error instanceof Error ? error.message : 'Failed to upload image');
-    }
-  }
-
-  // Step validation logic
-  const stepValid = (current: number): boolean => {
-    switch (current) {
-      case 0: { // credentials
-        const uname = form.username.trim();
-        const unameOk = /^[a-zA-Z0-9_-]{3,24}$/.test(uname);
-        const pwOk = form.password.length > 0 && validatePassword(form.password).length === 0 && form.password === form.passwordConfirm;
-        return unameOk && pwOk;
-      }
-      case 1: // basic info
-        return !!(form.firstName.trim() && form.lastName.trim() && form.location.trim());
-      case 2: // focus areas
-        return form.areas.length > 0;
-      case 3: // experience & goals
-        return !!(form.experienceLevel && form.goals.trim());
-      case 4: // bio
-        return !!form.bio.trim();
-      default:
-        return false;
-    }
-  };
-
-  async function handleSubmit() {
-    // Final guard all steps valid
-    if (![0,1,2,3,4].every(stepValid)) return;
-    const uname = form.username.trim();
-    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(uname)) {
-      setUsernameError('Invalid username');
-      return;
-    }
-    const pwdProblems = validatePassword(form.password);
-    const mismatch = form.password !== form.passwordConfirm;
-    if (pwdProblems.length || mismatch) {
-      setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]);
-      return;
-    }
-    const passwordHash = await hashPassword(form.password);
-    storeCredentials({ username: uname.toLowerCase(), passwordHash, createdAt: new Date().toISOString() });
     setUser({
       id: crypto.randomUUID(),
       username: uname.toLowerCase(),
@@ -197,14 +141,7 @@ export default function OnboardingPage() {
         />
       </FormRow>
       <FormRow label="Location">
-        <input
-          value={form.location}
-          required
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setForm((f: FormState) => ({ ...f, location: e.target.value }))
-          }
-          placeholder="City / Region"
-        />
+
       </FormRow>
     </div>,
     <div key="step-areas">
@@ -271,39 +208,7 @@ export default function OnboardingPage() {
           placeholder="Share your journey, wins, and what you want to learn."
         />
       </FormRow>
-      <FormRow label="Profile Picture (Optional)">
-        <div style={{display:'flex', flexDirection:'column', gap:'.75rem'}}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            style={{padding:'.5rem'}}
-          />
-          {imageError && (
-            <p style={{color:'#ff9bd2', fontSize:'.7rem', margin:0}}>{imageError}</p>
-          )}
-          {form.profilePicture && (
-            <div style={{display:'flex', alignItems:'center', gap:'.75rem'}}>
-              <img 
-                src={form.profilePicture} 
-                alt="Preview" 
-                style={{width:'60px', height:'60px', borderRadius:'50%', objectFit:'cover'}}
-              />
-              <button 
-                type="button" 
-                onClick={() => setForm((f: FormState) => ({ ...f, profilePicture: '' }))}
-                style={{fontSize:'.7rem', padding:'.25rem .5rem'}}
-              >
-                Remove
-              </button>
-            </div>
-          )}
-          <p style={{fontSize:'.65rem', opacity:0.7, margin:0}}>
-            Accepted formats: JPG, PNG, GIF. Max size: 5MB
-          </p>
-        </div>
-      </FormRow>
-      <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
+
     </div>
   ];
 
@@ -318,7 +223,7 @@ export default function OnboardingPage() {
         {steps[step]}
         <div className="flex space-between" style={{marginTop:'1rem'}}>
           <button type="button" onClick={prev} disabled={step===0}>Back</button>
-          {step < steps.length-1 && <button type="button" onClick={next} disabled={!stepValid(step)}>Next</button>}
+
         </div>
       </div>
     </div>
