@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { hashPassword, getStoredCredentials } from '../utils/password';
+import "./style.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -66,86 +67,129 @@ export default function LoginPage() {
     setIsLoading(false);
   }
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
+  const handleNext = async () => {
+    // Use existing login logic
+    const event = { preventDefault: () => {} } as React.FormEvent;
+    await handleLogin(event);
+  };
+
+  const handleHome = () => {
+    navigate('/');
+  };
+
+  const handleConnections = () => {
+    navigate('/explore');
+  };
+
+  const handleFriends = () => {
+    navigate('/friends');
+  };
+
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+
+  const handleNotifications = () => {
+    navigate('/notifications');
+  };
+
+  const handleProfile = () => {
+    if (user) {
+      navigate(`/profile/${user.username}`);
+    } else {
+      navigate('/profile');
+    }
+  };
+
   return (
-    <div className="grid" style={{ gap: '1.25rem', maxWidth: 480, margin: '2rem auto' }}>
-      <div className="card">
-        <h2>Welcome Back</h2>
-        <p style={{ opacity: 0.7, marginBottom: '1.5rem' }}>
-          Sign in to your Technova account
-        </p>
-        
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="form-row">
-            <label>Username</label>
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
-              placeholder="Enter your username"
-              required
-              disabled={isLoading}
-            />
-          </div>
-          
-          <div className="form-row">
-            <label>Password</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="Enter your password"
-              required
-              disabled={isLoading}
-              autoComplete="current-password"
-            />
+    <div className="login" data-model-id="1:2">
+      <div className="main-container">
+        <div className="group">
+          <div className="rectangle" />
+
+          <div className="navigation-container">
+            <button className="nav-button" onClick={handleHome}>
+              <div className="nav-text">HOME</div>
+              <div className="nav-box" />
+            </button>
+            <button className="nav-button" onClick={() => navigate('/login')}>
+              <div className="nav-text">SIGN IN</div>
+              <div className="nav-box" />
+            </button>
+            <button className="nav-button" onClick={() => navigate('/onboarding')}>
+              <div className="nav-text">JOIN NOW</div>
+              <div className="nav-box" />
+            </button>
           </div>
 
-          {error && (
-            <p style={{ color: '#ff9bd2', fontSize: '.8rem', margin: '0' }}>
-              {error}
-            </p>
-          )}
-
-          <button 
-            type="submit" 
-            disabled={isLoading || !form.username.trim() || !form.password}
-            style={{ marginTop: '.5rem' }}
-          >
-            {isLoading ? 'Signing In...' : 'Sign In'}
+          <button className="bell-button" onClick={handleNotifications}>
+            <img
+              className="image"
+              alt="Notifications"
+              src="https://c.animaapp.com/tyFZdqrz/img/image-1@2x.png"
+            />
           </button>
-        </form>
 
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '1.5rem', 
-          paddingTop: '1rem', 
-          borderTop: '1px solid #333' 
-        }}>
-          <p style={{ fontSize: '.8rem', opacity: 0.7, marginBottom: '.5rem' }}>
-            Don't have an account?
-          </p>
-          <button 
-            type="button"
-            onClick={() => navigate('/onboarding')}
-            style={{ 
-              background: '#222a35', 
-              color: '#fff',
-              fontSize: '.8rem'
-            }}
-          >
-            Create Account
+          <button className="profile-button" onClick={handleProfile}>
+            <div className="div" />
           </button>
         </div>
+
+        <div className="rectangle-2" />
+
+        <div className="text-wrapper">LOGIN</div>
+
+        <div className="username-label">username*</div>
+        <div className="rectangle-3">
+          <input
+            type="text"
+            className="username-input"
+            value={form.username}
+            onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="password-label">password*</div>
+        <div className="rectangle-4">
+          <input
+            type="password"
+            className="password-input"
+            value={form.password}
+            onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+            required
+            disabled={isLoading}
+            autoComplete="current-password"
+          />
+        </div>
+
+        <button className="back-button" onClick={handleBack} disabled={isLoading}>
+          <div className="rectangle-5" />
+          <div className="text-wrapper-2">back</div>
+        </button>
+
+        <button 
+          className="next-button" 
+          onClick={handleNext}
+          disabled={isLoading || !form.username.trim() || !form.password}
+        >
+          <div className="rectangle-6" />
+          <div className="text-wrapper-3">{isLoading ? 'signing in...' : 'next'}</div>
+        </button>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        
       </div>
-      
-      <p style={{ 
-        fontSize: '.65rem', 
-        opacity: 0.6, 
-        textAlign: 'center',
-        margin: 0 
-      }}>
-        Prototype authentication - credentials stored locally only
-      </p>
     </div>
   );
 }
