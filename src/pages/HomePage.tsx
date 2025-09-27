@@ -35,11 +35,17 @@ export default function HomePage() {
           <h3>Confidence Builder</h3>
           <p>Track weekly wins & reflections.</p>
         </div>
-        {user && (
+        {user ? (
           <div className="card">
             <h3>Messages</h3>
             <p>DM friends or chat with your groups.</p>
             <Link to="/notifications"><button>Open</button></Link>
+          </div>
+        ) : (
+          <div className="card" style={{opacity:.85}}>
+            <h3>Members-Only Features</h3>
+            <p style={{fontSize:'.75rem'}}>Sign in to see suggested members, send connection requests, and unlock messaging.</p>
+            <Link to="/onboarding"><button>Get Started</button></Link>
           </div>
         )}
       </section>
