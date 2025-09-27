@@ -6,6 +6,8 @@ import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
+import LoginPage from './pages/LoginPage';
+import ConnectionsPage from './pages/ConnectionsPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
 import FriendsPage from './pages/FriendsPage';
@@ -54,33 +56,47 @@ export default function App() {
 }
 
 function NavBar() {
-  const user = useUserStore(s => s.user);
-  const logout = useUserStore(s => s.logout);
+  const { user, logout } = useUserStore((s: any) => ({ user: s.user, logout: s.logout }));
   const navigate = useNavigate();
-  const links = [
+  const incomingCount = user?.incomingRequests?.length || 0;
+  const authedLinks = [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
+    { to: '/connections', label: `Connections${incomingCount ? ` (${incomingCount})` : ''}` },
     { to: '/friends', label: 'Friends' },
-    { to: '/onboarding', label: 'Onboarding' },
     { to: '/settings', label: 'Settings' }
   ];
+  const publicLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/login', label: 'Sign In' },
+    { to: '/onboarding', label: 'Join Now' }
+  ];
+  const links = user ? authedLinks : publicLinks;
   return (
-    <nav>
-      <strong style={{marginRight:'1rem'}}>Technova</strong>
+    <nav aria-label="Main navigation" style={{display:'flex', alignItems:'center', gap:'.75rem', flexWrap:'wrap'}}>
+      <strong style={{marginRight:'1rem', fontSize:'1.05rem'}}>Technova</strong>
       {links.map(l => (
         <NavLink
           key={l.to}
           to={l.to}
-          className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
+          className={({ isActive }: { isActive: boolean }) => isActive ? 'active' : ''}
+          style={{ position:'relative' }}
         >
           {l.label}
         </NavLink>
       ))}
+      <span style={{flex:1}} />
       {user && (
-        <button
-          style={{marginLeft:'auto', background:'#222a35', color:'#fff'}}
-          onClick={() => { logout(); navigate('/'); }}
-        >Logout</button>
+        <div style={{display:'flex', alignItems:'center', gap:'.75rem'}}>
+          <NavLink to={`/profile/${user.username}`} className={({isActive}:{isActive:boolean})=> isActive? 'active' : ''}>
+            @{user.username}
+          </NavLink>
+          <button
+            onClick={() => { logout(); navigate('/'); }}
+            style={{background:'#222a35', color:'#fff'}}
+            aria-label="Log out"
+          >Logout</button>
+        </div>
       )}
     </nav>
   );
