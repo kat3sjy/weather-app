@@ -1,4 +1,16 @@
 node_modules
+
+node_modules
+node_modules
+node_modules
+node_modules
+node_modules
+node_modules
+
+.env
+.env.local
+.env.*.local
+!.env.example
 .vite
 dist
 coverage
