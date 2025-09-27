@@ -1,4 +1,5 @@
-import { NavLink, Route, Routes } from 'react-router-dom';
+import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { useUserStore } from './store/userStore';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import ExplorePage from './pages/ExplorePage';
@@ -27,6 +28,9 @@ export default function App() {
 }
 
 function NavBar() {
+  const user = useUserStore(s => s.user);
+  const logout = useUserStore(s => s.logout);
+  const navigate = useNavigate();
   const links = [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
@@ -37,8 +41,20 @@ function NavBar() {
     <nav>
       <strong style={{marginRight:'1rem'}}>Technova</strong>
       {links.map(l => (
-        <NavLink key={l.to} to={l.to} className={({isActive}) => isActive ? 'active' : ''}>{l.label}</NavLink>
+        <NavLink
+          key={l.to}
+          to={l.to}
+          className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
+        >
+          {l.label}
+        </NavLink>
       ))}
+      {user && (
+        <button
+          style={{marginLeft:'auto', background:'#222a35', color:'#fff'}}
+          onClick={() => { logout(); navigate('/'); }}
+        >Logout</button>
+      )}
     </nav>
   );
 }

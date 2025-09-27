@@ -1,7 +1,7 @@
 import { useUserStore } from '../store/userStore';
 
 export default function SettingsPage() {
-  const { user, setUser } = useUserStore();
+  const { user, setUser, logout } = useUserStore() as any;
   if (!user) return <div className="card"><p>Login / onboard first.</p></div>;
 
   function update(field: string, value: string) {
@@ -27,6 +27,9 @@ export default function SettingsPage() {
         <div className="form-row">
           <label>Bio</label>
           <textarea rows={4} value={user.bio} onChange={e=>update('bio', e.target.value)} />
+        </div>
+        <div style={{display:'flex', justifyContent:'flex-end', marginTop:'1rem'}}>
+          <button type="button" style={{background:'#222a35', color:'#fff'}} onClick={logout}>Logout</button>
         </div>
       </div>
     </div>
