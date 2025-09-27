@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect } from 'react';
+import { type ReactNode } from 'react';
 import { create } from 'zustand';
 
 export interface User {
@@ -19,25 +20,41 @@ interface UserState {
   user: User | null;
   setUser: (u: User) => void;
   clearUser: () => void;
+  logout: () => void; // alias for clarity
 }
 
 const STORAGE_KEY = 'technova_user_v1';
 
-const useUserBase = create<UserState>(set => ({
+interface SetUser {
+  (u: User): void;
+}
+
+interface ClearUser {
+  (): void;
+}
+
+interface UseUserBase extends UserState {}
+
+const useUserBase = create((set: (partial: Partial<UserState>) => void): UserState => ({
   user: null,
-  setUser: (u) => {
+  setUser: ((u: User) => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); } catch {}
     set({ user: u });
-  },
-  clearUser: () => {
+  }) as SetUser,
+  clearUser: (() => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    set({ user: null });
+  }) as ClearUser,
+  logout: () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     set({ user: null });
   }
 }));
 
-const UserStoreContext = createContext<typeof useUserBase | null>(null);
+const UserStoreContext = createContext(null as unknown as ReturnType<typeof useUserBase>);
 
-export function UserStoreProvider({children}:{children:React.ReactNode}) {
+interface ProviderProps { children?: any }
+export function UserStoreProvider({ children }: ProviderProps) {
   // Hydrate once on mount
   useEffect(() => {
     try {
