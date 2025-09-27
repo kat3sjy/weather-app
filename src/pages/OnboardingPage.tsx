@@ -4,16 +4,16 @@ import { generateUsername } from '../utils/generateUsername';
 import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
 
 interface FormState {
+  username: string;
+  password: string;
+  passwordConfirm: string;
   firstName: string;
   lastName: string;
-  areas: string[];
-  goals: string;
-  experienceLevel: string;
-  bio: string;
   location: string;
-  username?: string;
-  password?: string;
-  passwordConfirm?: string;
+  areas: string[];
+  experienceLevel: string;
+  goals: string;
+  bio: string;
 }
 
 const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Sports Analytics', 'Sports Performance', 'VR/AR', 'Web Dev'];
@@ -24,11 +24,12 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
-    firstName: '', lastName: '', areas: [], goals: '', experienceLevel: '', bio: '', location: '',
-    username: existingCreds?.username || '', password: '', passwordConfirm: ''
+    username: existingCreds?.username || '', password: '', passwordConfirm: '',
+    firstName: '', lastName: '', location: '', areas: [], experienceLevel: '', goals: '', bio: ''
   });
   const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
   const [usernameTouched, setUsernameTouched] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
 
   function toggleArea(area: string) {
     setForm((f: FormState) => ({
@@ -42,23 +43,47 @@ export default function OnboardingPage() {
   function next() { setStep((s: number) => Math.min(s + 1, steps.length - 1)); }
   function prev() { setStep((s: number) => Math.max(s - 1, 0)); }
 
-  async function handleSubmit() {
-    const forcedUsername = (form.username && form.username.trim()) || generateUsername(form.firstName, form.lastName);
-    // Basic username sanitation
-    const safeUsername = forcedUsername.replace(/[^a-zA-Z0-9_\-]/g,'').toLowerCase();
-    let passwordHash = '';
-    if (form.password) {
-      const issues = validatePassword(form.password);
-      if (issues.length || form.password !== form.passwordConfirm) {
-        setPwdIssues([...(issues.length?issues:[]), ...(form.password !== form.passwordConfirm? ['Passwords do not match'] : [])]);
-        return;
+  // Step validation logic
+  const stepValid = (current: number): boolean => {
+    switch (current) {
+      case 0: { // credentials
+        const uname = form.username.trim();
+        const unameOk = /^[a-zA-Z0-9_-]{3,24}$/.test(uname);
+        const pwOk = form.password.length > 0 && validatePassword(form.password).length === 0 && form.password === form.passwordConfirm;
+        return unameOk && pwOk;
       }
-      passwordHash = await hashPassword(form.password);
-      storeCredentials({ username: safeUsername, passwordHash, createdAt: new Date().toISOString() });
+      case 1: // basic info
+        return !!(form.firstName.trim() && form.lastName.trim() && form.location.trim());
+      case 2: // focus areas
+        return form.areas.length > 0;
+      case 3: // experience & goals
+        return !!(form.experienceLevel && form.goals.trim());
+      case 4: // bio
+        return !!form.bio.trim();
+      default:
+        return false;
     }
+  };
+
+  async function handleSubmit() {
+    // Final guard all steps valid
+    if (![0,1,2,3,4].every(stepValid)) return;
+    const uname = form.username.trim();
+    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(uname)) {
+      setUsernameError('Invalid username');
+      return;
+    }
+    const pwdProblems = validatePassword(form.password);
+    const mismatch = form.password !== form.passwordConfirm;
+    if (pwdProblems.length || mismatch) {
+      setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]);
+      return;
+    }
+    const passwordHash = await hashPassword(form.password);
+    storeCredentials({ username: uname.toLowerCase(), passwordHash, createdAt: new Date().toISOString() });
     setUser({
       id: crypto.randomUUID(),
-      username: safeUsername,
+      username: uname.toLowerCase(),
       firstName: form.firstName,
       lastName: form.lastName,
       areas: form.areas,
@@ -71,11 +96,68 @@ export default function OnboardingPage() {
   }
 
   const steps = [
-    <div key="s1">
+    <div key="step-credentials">
+      <h2>Create Your Account</h2>
+      <FormRow label="Username *">
+        <input
+          value={form.username}
+          required
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setUsernameTouched(true);
+            const val = e.target.value;
+            setForm((f: FormState) => ({ ...f, username: val }));
+            setUsernameError(/^[a-zA-Z0-9_-]{3,24}$/.test(val) ? '' : '3-24 letters, numbers, _ or -');
+          }}
+          placeholder="yourhandle"
+        />
+      </FormRow>
+      {(usernameError || (usernameTouched && !form.username)) && (
+        <p style={{color:'#ff9bd2', fontSize:'.7rem', marginTop:'-.25rem'}}>{usernameError || 'Username required'}</p>
+      )}
+      <FormRow label="Password *">
+        <input
+          type="password"
+          value={form.password}
+          required
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            const val = e.target.value;
+            setForm((f: FormState) => ({ ...f, password: val }));
+            setPwdIssues(validatePassword(val));
+          }}
+          placeholder="Strong password"
+          autoComplete="new-password"
+        />
+      </FormRow>
+      <FormRow label="Confirm Password *">
+        <input
+          type="password"
+            value={form.passwordConfirm}
+            required
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const val = e.target.value;
+              setForm((f: FormState) => ({ ...f, passwordConfirm: val }));
+              if (form.password) {
+                setPwdIssues((prev: string[]) => prev.filter((p: string) => p !== 'Passwords do not match'));
+                if (val !== form.password) setPwdIssues((prev: string[]) => [...prev.filter((p: string) => p !== 'Passwords do not match'), 'Passwords do not match']);
+              }
+            }}
+            placeholder="Re-enter password"
+            autoComplete="new-password"
+        />
+      </FormRow>
+      {pwdIssues.length > 0 && (
+        <ul style={{marginTop:'.5rem', paddingLeft:'1.1rem', color:'#ff9bd2', fontSize:'.7rem'}}>
+          {pwdIssues.map((i: string) => <li key={i}>{i}</li>)}
+        </ul>
+      )}
+      <p style={{opacity:.6, fontSize:'.65rem', marginTop:'.5rem'}}>Prototype only: credentials stored locally (hashed).</p>
+    </div>,
+    <div key="step-basic">
       <h2>Basic Info</h2>
       <FormRow label="First Name">
         <input
           value={form.firstName}
+          required
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setForm((f: FormState) => ({ ...f, firstName: e.target.value }))
           }
@@ -84,6 +166,7 @@ export default function OnboardingPage() {
       <FormRow label="Last Name">
         <input
           value={form.lastName}
+          required
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setForm((f: FormState) => ({ ...f, lastName: e.target.value }))
           }
@@ -92,6 +175,7 @@ export default function OnboardingPage() {
       <FormRow label="Location">
         <input
           value={form.location}
+          required
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setForm((f: FormState) => ({ ...f, location: e.target.value }))
           }
@@ -99,7 +183,7 @@ export default function OnboardingPage() {
         />
       </FormRow>
     </div>,
-    <div key="s2">
+    <div key="step-areas">
       <h2>Focus Areas</h2>
       <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))'}}>
         {AREA_OPTIONS.map((opt: string) => {
@@ -122,11 +206,12 @@ export default function OnboardingPage() {
         })}
       </div>
     </div>,
-    <div key="s3">
+    <div key="step-exp">
       <h2>Experience & Goals</h2>
       <FormRow label="Experience Level">
         <select
           value={form.experienceLevel}
+          required
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
             setForm((f: FormState) => ({ ...f, experienceLevel: e.target.value }))
           }
@@ -141,6 +226,7 @@ export default function OnboardingPage() {
         <textarea
           rows={4}
           value={form.goals}
+          required
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             setForm((f: FormState) => ({ ...f, goals: e.target.value }))
           }
@@ -148,68 +234,20 @@ export default function OnboardingPage() {
         />
       </FormRow>
     </div>,
-    <div key="s4">
+    <div key="step-bio">
       <h2>Bio</h2>
       <FormRow label="About You">
         <textarea
           rows={5}
           value={form.bio}
+          required
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             setForm((f: FormState) => ({ ...f, bio: e.target.value }))
           }
           placeholder="Share your journey, wins, and what you want to learn."
         />
       </FormRow>
-    </div>,
-    <div key="s5">
-      <h2>Account Credentials</h2>
-      <FormRow label="Username (optional – we can auto-generate)">
-        <input
-          value={form.username || ''}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setUsernameTouched(true);
-            setForm((f: FormState) => ({ ...f, username: e.target.value }));
-          }}
-          placeholder="yourhandle"
-        />
-      </FormRow>
-      {usernameTouched && !form.username && <p style={{color:'#ff9bd2', fontSize:'.75rem'}}>Will auto-generate if left blank.</p>}
-      <FormRow label="Password (optional for now)">
-        <input
-          type="password"
-          value={form.password || ''}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const val = e.target.value;
-            setForm((f: FormState) => ({ ...f, password: val }));
-            setPwdIssues(validatePassword(val));
-          }}
-          placeholder="Strong password"
-          autoComplete="new-password"
-        />
-      </FormRow>
-      <FormRow label="Confirm Password">
-        <input
-          type="password"
-          value={form.passwordConfirm || ''}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const val = e.target.value;
-            setForm((f: FormState) => ({ ...f, passwordConfirm: val }));
-            if (form.password) {
-              setPwdIssues((prev: string[]) => prev.filter((p: string) => p !== 'Passwords do not match'));
-              if (val !== form.password) setPwdIssues((prev: string[]) => [...prev.filter((p: string) => p !== 'Passwords do not match'), 'Passwords do not match']);
-            }
-          }}
-          placeholder="Re-enter password"
-          autoComplete="new-password"
-        />
-      </FormRow>
-      {pwdIssues.length > 0 && (
-        <ul style={{marginTop:'.5rem', paddingLeft:'1.1rem', color:'#ff9bd2', fontSize:'.7rem'}}>
-          {pwdIssues.map((i: string) => <li key={i}>{i}</li>)}
-        </ul>
-      )}
-      <button onClick={handleSubmit} disabled={!form.firstName || !form.areas.length || !form.experienceLevel || (form.password ? (pwdIssues.length>0 || form.password !== form.passwordConfirm) : false)}>Finish & Create Profile</button>
-      <p style={{opacity:.6, fontSize:'.65rem', marginTop:'.75rem'}}>Passwords are stored only as a local hashed prototype credential. Not production auth.</p>
+      <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
     </div>
   ];
 
@@ -224,7 +262,7 @@ export default function OnboardingPage() {
         {steps[step]}
         <div className="flex space-between" style={{marginTop:'1rem'}}>
           <button type="button" onClick={prev} disabled={step===0}>Back</button>
-          {step < steps.length-1 && <button type="button" onClick={next}>Next</button>}
+          {step < steps.length-1 && <button type="button" onClick={next} disabled={!stepValid(step)}>Next</button>}
         </div>
       </div>
     </div>
