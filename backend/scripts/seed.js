@@ -5,13 +5,14 @@ import User, { upsertUserByUsername } from "../models/User.js";
 dotenv.config();
 
 async function main() {
-  const uri = process.env.MONGO_URI;
+  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/technova';
+  const dbName = process.env.MONGODB_DB;
   if (!uri) {
     console.error("Missing MONGO_URI in .env");
     process.exit(1);
   }
 
-  await mongoose.connect(uri, { dbName: "pixelpal" });
+  await mongoose.connect(uri, dbName ? { dbName } : {});
   console.log("Connected to MongoDB");
 
   const users = [
