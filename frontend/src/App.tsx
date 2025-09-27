@@ -8,6 +8,7 @@ import SettingsPage from './pages/SettingsPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
 import FriendsPage from './pages/FriendsPage';
+import ChatPage from './pages/Chat';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Routes>
         </div>
         <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>
@@ -40,7 +42,8 @@ function NavBar() {
     { to: '/explore', label: 'Explore' },
     { to: '/friends', label: 'Friends' },
     { to: '/onboarding', label: 'Onboarding' },
-    { to: '/settings', label: 'Settings' }
+    { to: '/settings', label: 'Settings' },
+    { to: '/chat', label: 'Chat' } // added
   ];
   return (
     <nav>

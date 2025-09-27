@@ -59,8 +59,52 @@ src/
 ## Contributing
 Open an issue with proposed feature or improvement. Keep PRs scoped & include screenshots for UI changes.
 
+## Backend MongoDB integration: quick verification
+
+Note: This checks the backend API’s MongoDB connection. Run these from the backend directory.
+
+1) Find the DB connect code:
+```bash
+cd backend
+grep -R -n -E "mongoose|MongoClient|MONGODB_URI" .
+# alternatives
+grep -R -n -i "mongo" .
+```
+Expect to see something like:
+- `mongoose.connect(process.env.MONGODB_URI)`
+- or `new MongoClient(process.env.MONGODB_URI)`
+
+2) Ensure backend/.env has MONGODB_URI set:
+```bash
+# Atlas example
+MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority"
+```
+
+3) Run the backend and look for a “connected to MongoDB” log:
+```bash
+cd backend
+npm run dev
+```
+
+4) Health check (route is already implemented at /health/db):
+```bash
+curl http://localhost:3000/health/db
+# -> { "ok": true, "driver": "mongoose", "state": 1, "db": "technova", "ping": 1 }
+```
+
+5) One-liner verification script (if present):
+```bash
+cd backend
+node ./scripts/verify-backend.mjs
+```
+
+If `ok: true`, your MongoDB integration is live from the API’s perspective.
+
+Troubleshooting tips:
+- `state: 2` means connecting; wait/retry.
+- `state: 0` (disconnected): check MONGODB_URI, network, or auth.
+- If using Atlas, ensure IP is whitelisted and SRV DNS works.
+
 ---
 © 2025 Technova Networking
 # technova-2025
-
-commit test
