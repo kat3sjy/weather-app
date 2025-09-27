@@ -6,6 +6,8 @@ import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
 import { UserStoreProvider } from './store/userStore';
+import NotificationsPage from './pages/NotificationsPage';
+import FriendsPage from './pages/FriendsPage';
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/friends" element={<FriendsPage />} />
           </Routes>
         </div>
         <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>
@@ -34,6 +38,7 @@ function NavBar() {
   const links = [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
+    { to: '/friends', label: 'Friends' },
     { to: '/onboarding', label: 'Onboarding' },
     { to: '/settings', label: 'Settings' }
   ];
