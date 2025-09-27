@@ -12,6 +12,20 @@ export default function ProfilePage() {
     return <div className="card"><p>User profile not found.</p></div>;
   }
 
+  // If not logged in and trying to view someone (including self) require auth first
+  if (!current) {
+    return (
+      <div className="card" style={{maxWidth:500}}>
+        <h2>Sign in to view profiles</h2>
+        <p style={{fontSize:'.8rem', opacity:.75}}>Create an account or sign in to view member profiles and connect.</p>
+        <div style={{display:'flex', gap:'.75rem', marginTop:'1rem'}}>
+          <a href="/login"><button>Sign In</button></a>
+          <a href="/onboarding"><button>Create Account</button></a>
+        </div>
+      </div>
+    );
+  }
+
   const isSelf = current && current.id === target.id;
   const connected = !!(current && target && current.connections?.includes(target.id));
 

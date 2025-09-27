@@ -31,6 +31,7 @@ export default function HomePage() {
           <p>DM friends or chat with your groups.</p>
           <Link to="/notifications"><button>Open</button></Link>
         </div>
+
       </section>
     </div>
   );
