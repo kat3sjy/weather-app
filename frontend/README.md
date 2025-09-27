@@ -59,11 +59,13 @@ src/
 ## Contributing
 Open an issue with proposed feature or improvement. Keep PRs scoped & include screenshots for UI changes.
 
-## MongoDB integration: quick verification
+## Backend MongoDB integration: quick verification
+
+Note: This checks the backend API’s MongoDB connection. Run these from the backend directory.
 
 1) Find the DB connect code:
 ```bash
-# from repo root
+cd backend
 grep -R -n -E "mongoose|MongoClient|MONGODB_URI" .
 # alternatives
 grep -R -n -i "mongo" .
@@ -72,7 +74,7 @@ Expect to see something like:
 - `mongoose.connect(process.env.MONGODB_URI)`
 - or `new MongoClient(process.env.MONGODB_URI)`
 
-2) Ensure MONGODB_URI is set:
+2) Ensure backend/.env has MONGODB_URI set:
 ```bash
 # Atlas example
 MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority"
@@ -80,17 +82,19 @@ MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=major
 
 3) Run the backend and look for a “connected to MongoDB” log:
 ```bash
-npm run dev   # or your backend start script
+cd backend
+npm run dev
 ```
 
-4) Health check (after adding the route below):
+4) Health check (route is already implemented at /health/db):
 ```bash
 curl http://localhost:3000/health/db
 # -> { "ok": true, "driver": "mongoose", "state": 1, "db": "technova", "ping": 1 }
 ```
 
-5) One-liner verification script:
+5) One-liner verification script (if present):
 ```bash
+cd backend
 node ./scripts/verify-backend.mjs
 ```
 
@@ -104,5 +108,3 @@ Troubleshooting tips:
 ---
 © 2025 Technova Networking
 # technova-2025
-
-commit test
