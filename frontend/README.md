@@ -59,6 +59,33 @@ src/
 ## Contributing
 Open an issue with proposed feature or improvement. Keep PRs scoped & include screenshots for UI changes.
 
+## Consistent dev setup (avoid mismatched apps/ports)
+
+To ensure everyone sees the same UI against the same backend:
+
+1) Run the same app from the same folder
+- Use the frontend app:
+  cd frontend && npm run dev
+- Avoid running a different app at repo root if present.
+
+2) Pin the dev port
+- Vite is pinned to http://localhost:5173 (see vite.config.ts).
+- If 5173 is busy, stop the other process or change the port consistently for everyone.
+
+3) Point the UI at the same API
+- Legacy backend (Express) runs on port 3000:
+  - frontend/.env.local -> VITE_API_BASE=http://localhost:3000
+- Start backend:
+  cd backend && npm run dev
+
+4) Quick verification
+- Frontend: http://localhost:5173 (navigate to /chat)
+- Backend: curl http://localhost:3000/ -> "API is running"
+
+Signs you're on a different app:
+- Different nav/routes (e.g., /ai-demo in another app vs /chat here).
+- Different dev ports (5173 vs 5174/5192) or different API base (8787 vs 3000).
+
 ## Backend MongoDB integration: quick verification
 
 Note: This checks the backend API’s MongoDB connection. Run these from the backend directory.
