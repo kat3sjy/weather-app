@@ -2,10 +2,14 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import fs from 'fs';
+import { execSync } from 'node:child_process';
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MODEL_ID = process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-pro';
+// Base port preference (will auto-increment on conflict)
+const BASE_PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
+// Trim to avoid invisible whitespace issues that cause API_KEY_INVALID
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
+const MODEL_ID = process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
 
 const app = express();
 app.use(cors());
@@ -14,11 +18,61 @@ app.use(express.json());
 const SERVER_STARTED_AT = new Date().toISOString();
 
 // After you create the Express app (or before listen), add a one-time boot log:
-const aiConfigured = !!process.env.GEMINI_API_KEY;
+// Build effective key resolving placeholder conflicts
+let FILE_GEMINI_API_KEY: string | undefined;
+try {
+  const rawEnvFile2 = fs.readFileSync('.env', 'utf8');
+  const fileKeyMatch2 = rawEnvFile2.match(/^\s*GEMINI_API_KEY\s*=\s*(.+)$/m);
+  if (fileKeyMatch2) FILE_GEMINI_API_KEY = fileKeyMatch2[1].trim();
+} catch {}
+let EFFECTIVE_GEMINI_API_KEY = GEMINI_API_KEY;
+if (isPlaceholderKey(GEMINI_API_KEY) && FILE_GEMINI_API_KEY && !isPlaceholderKey(FILE_GEMINI_API_KEY)) {
+  console.warn('[AI][env] Overriding placeholder exported GEMINI_API_KEY with .env file value.');
+  EFFECTIVE_GEMINI_API_KEY = FILE_GEMINI_API_KEY;
+}
+// Consider placeholder or suspiciously short keys as NOT configured
+const looksInvalid = isPlaceholderKey(EFFECTIVE_GEMINI_API_KEY) || (EFFECTIVE_GEMINI_API_KEY ? EFFECTIVE_GEMINI_API_KEY.length < 25 : false);
+if (looksInvalid) {
+  console.warn('[AI][env] Treating key as unconfigured (placeholder or too short). Set GEMINI_API_KEY to a real AIza... value.');
+  EFFECTIVE_GEMINI_API_KEY = undefined;
+}
+const aiConfigured = !!EFFECTIVE_GEMINI_API_KEY;
 const aiEnvModel = process.env.GEMINI_MODEL || '(unset)';
+function isPlaceholderKey(k?: string | null) {
+  return !!k && /your[_-]?api[_-]?key/i.test(k);
+}
+function maskKey(k?: string | null): string {
+  if (!k) return '(none)';
+  if (k.length <= 8) return `${k[0]}***${k[k.length - 1]}`;
+  return `${k.slice(0, 4)}…${k.slice(-4)} (len=${k.length})`;
+}
 console.log(
-  `[AI] configured=${aiConfigured} model(env)=${aiEnvModel} default=gemini-1.5-pro cwd=${process.cwd()}`
+  `[AI] configured=${aiConfigured} model(env)=${aiEnvModel} default=gemini-2.0-flash key=${maskKey(EFFECTIVE_GEMINI_API_KEY)} (rawProcess=${maskKey(GEMINI_API_KEY)}) cwd=${process.cwd()}`
 );
+if (isPlaceholderKey(GEMINI_API_KEY)) {
+  console.warn('[AI][env] Placeholder GEMINI_API_KEY detected (value looks like "your-api-key-here"). Replace it in .env with your real key from Google AI Studio (AIza...).');
+  console.warn('[AI][env] Example line: GEMINI_API_KEY=AIzaSyEXAMPLE_REAL_KEY');
+}
+
+// Detect if a placeholder environment variable is shadowing a real key in .env
+try {
+  const rawEnvFile = fs.readFileSync('.env', 'utf8');
+  const fileKeyMatch = rawEnvFile.match(/^\s*GEMINI_API_KEY\s*=\s*(.+)$/m);
+  if (fileKeyMatch) {
+    const fileKey = fileKeyMatch[1].trim();
+    const differs = fileKey && GEMINI_API_KEY && fileKey !== GEMINI_API_KEY;
+    const processPlaceholder = isPlaceholderKey(GEMINI_API_KEY);
+    const filePlaceholder = isPlaceholderKey(fileKey);
+    if (differs) {
+      console.warn('[AI][env] process GEMINI_API_KEY differs from .env file value. Dotenv does not override exported vars.');
+      console.warn('[AI][env] process key =', maskKey(GEMINI_API_KEY));
+      console.warn('[AI][env] .env file key =', maskKey(fileKey));
+      console.warn('[AI][env] If this is unintended, run: unset GEMINI_API_KEY');
+    } else if (processPlaceholder && filePlaceholder) {
+      console.warn('[AI][env] Placeholder key present in both environment and .env; AI calls will always fallback until replaced.');
+    }
+  }
+} catch {}
 
 // Track last AI error/model for diagnostics
 let LAST_AI_ERROR: string | null = null;
@@ -121,14 +175,14 @@ async function analyze(user: User, opts?: { modelHint?: string; debug?: boolean 
   LAST_MODEL_USED = modelToUse;
 
   const dbg = !!opts?.debug;
-  if (!GEMINI_API_KEY) {
+  if (!EFFECTIVE_GEMINI_API_KEY) {
     const fb = fallbackAnalysis(user);
     if (dbg) console.log(`[AI] fallback(no_api_key) model=${modelToUse} user=${user.username}`);
     return { ...fb, _meta: { usedFallback: true, reason: 'no_api_key', model: modelToUse, configured: false } };
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(EFFECTIVE_GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: modelToUse });
     const prompt = toPrompt(user);
     if (dbg) console.log(`[AI] analyze request model=${modelToUse} user=${user.username} promptChars=${prompt.length}`);
@@ -207,7 +261,7 @@ app.post('/api/ai/score', async (req, res) => {
 // Reusable status handler for GET/HEAD
 const statusHandler = (_req: express.Request, res: express.Response) => {
   res.json({
-    configured: Boolean(GEMINI_API_KEY),
+    configured: Boolean(EFFECTIVE_GEMINI_API_KEY),
     model: MODEL_ID,
     envModel: process.env.GEMINI_MODEL ?? null,
     defaultUsed: !process.env.GEMINI_MODEL,
@@ -215,6 +269,10 @@ const statusHandler = (_req: express.Request, res: express.Response) => {
     startedAt: SERVER_STARTED_AT,
     lastError: LAST_AI_ERROR,
     lastModelUsed: LAST_MODEL_USED,
+    keyPreview: maskKey(EFFECTIVE_GEMINI_API_KEY),
+    rawProcessKey: maskKey(GEMINI_API_KEY),
+    fromFileKey: maskKey(FILE_GEMINI_API_KEY),
+    overrodePlaceholder: isPlaceholderKey(GEMINI_API_KEY) && !isPlaceholderKey(FILE_GEMINI_API_KEY) && EFFECTIVE_GEMINI_API_KEY === FILE_GEMINI_API_KEY
   });
 };
 
@@ -224,11 +282,27 @@ app.head('/api/ai/status', statusHandler);
 // Optional: explicitly expose boot info identical to the console log for curl
 app.get('/api/ai/boot', (_req, res) => {
   res.json({
-    configured: Boolean(GEMINI_API_KEY),
+    configured: Boolean(EFFECTIVE_GEMINI_API_KEY),
     envModel: process.env.GEMINI_MODEL ?? null,
     modelConst: MODEL_ID,
     cwd: process.cwd(),
-    startedAt: SERVER_STARTED_AT
+    startedAt: SERVER_STARTED_AT,
+    keyPreview: maskKey(EFFECTIVE_GEMINI_API_KEY)
+  });
+});
+
+// Lightweight environment diagnostics (safe – masked key)
+app.get('/api/ai/env', (_req, res) => {
+  res.json({
+    configured: Boolean(EFFECTIVE_GEMINI_API_KEY),
+    model: MODEL_ID,
+    rawModelEnv: process.env.GEMINI_MODEL ?? null,
+    keyPreview: maskKey(EFFECTIVE_GEMINI_API_KEY),
+    rawProcessKey: maskKey(GEMINI_API_KEY),
+    fromFileKey: maskKey(FILE_GEMINI_API_KEY),
+    overrodePlaceholder: isPlaceholderKey(GEMINI_API_KEY) && !isPlaceholderKey(FILE_GEMINI_API_KEY) && EFFECTIVE_GEMINI_API_KEY === FILE_GEMINI_API_KEY,
+    hasTrailingWhitespace: !!process.env.GEMINI_API_KEY && /\s$/.test(process.env.GEMINI_API_KEY),
+    length: EFFECTIVE_GEMINI_API_KEY?.length || 0
   });
 });
 
@@ -256,8 +330,30 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Not found', path: req.path, routes: listRoutes() });
 });
 
-app.listen(PORT, () => {
-  console.log(`[server] listening on http://localhost:${PORT}`);
-  console.log('[server] routes:', listRoutes());
-  console.log(`[AI] tip: curl http://localhost:${PORT}/api/ai/boot to see env vs. resolved model and cwd`);
-});
+function startServer(port: number, attemptsLeft: number) {
+  const server = app.listen(port, () => {
+    console.log(`[server] listening on http://localhost:${port}`);
+    console.log('[server] routes:', listRoutes());
+    console.log(`[AI] tip: curl http://localhost:${port}/api/ai/boot`);
+  });
+  server.on('error', (err: any) => {
+    if (err?.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.warn(`[server] port ${port} in use, trying ${port + 1}…`);
+      startServer(port + 1, attemptsLeft - 1);
+    } else {
+      console.error('[server] failed to start:', err);
+      if (err?.code === 'EADDRINUSE') {
+        try {
+          const p = execSync(`lsof -i :${port} -sTCP:LISTEN -Pn || true`, { stdio: 'pipe' }).toString();
+          if (p.trim()) {
+            console.error('[server] processes using port', port, '\n' + p);
+            console.error('[server] You can free it with: kill -9 <PID>');
+          }
+        } catch {}
+      }
+      setTimeout(() => process.exit(1), 250);
+    }
+  });
+}
+
+startServer(BASE_PORT, 5);
