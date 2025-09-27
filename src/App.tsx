@@ -6,6 +6,7 @@ import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
+import ConnectionsPage from './pages/ConnectionsPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
 import FriendsPage from './pages/FriendsPage';
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/connections" element={<ConnectionsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/friends" element={<FriendsPage />} />
           </Routes>
@@ -34,42 +36,36 @@ export default function App() {
 }
 
 function NavBar() {
-  // Select only what we need from the store to avoid re-renders
   const { user, logout } = useUserStore((s: any) => ({ user: s.user, logout: s.logout }));
   const navigate = useNavigate();
-
   const authedLinks = [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
+    { to: '/connections', label: 'Connections' },
     { to: '/friends', label: 'Friends' },
     { to: '/settings', label: 'Settings' }
   ];
-
   const publicLinks = [
     { to: '/', label: 'Home' },
     { to: '/login', label: 'Sign In' },
     { to: '/onboarding', label: 'Join Now' }
   ];
-
   const links = user ? authedLinks : publicLinks;
-
   return (
     <nav aria-label="Main navigation" style={{display:'flex', alignItems:'center', gap:'.75rem', flexWrap:'wrap'}}>
       <strong style={{marginRight:'1rem', fontSize:'1.05rem'}}>Technova</strong>
       {links.map(l => (
         <NavLink
           key={l.to}
-            to={l.to}
-            className={({ isActive }: { isActive: boolean }) => isActive ? 'active' : ''}
-            style={{
-              position:'relative'
-            }}
-          >
-            {l.label}
-          </NavLink>
+          to={l.to}
+          className={({ isActive }: { isActive: boolean }) => isActive ? 'active' : ''}
+          style={{ position:'relative' }}
+        >
+          {l.label}
+        </NavLink>
       ))}
       <span style={{flex:1}} />
-      {user ? (
+      {user && (
         <div style={{display:'flex', alignItems:'center', gap:'.75rem'}}>
           <NavLink to={`/profile/${user.username}`} className={({isActive}:{isActive:boolean})=> isActive? 'active' : ''}>
             @{user.username}
@@ -80,7 +76,7 @@ function NavBar() {
             aria-label="Log out"
           >Logout</button>
         </div>
-      ) : null}
+      )}
     </nav>
   );
 }
