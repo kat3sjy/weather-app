@@ -15,8 +15,12 @@ export default function HomePage() {
           </div>
         )}
         {user && <Link to={`/profile/${user.username}`}><button>Your Profile</button></Link>}
-        <span style={{ marginLeft: 8 }} />
-        <Link to="/notifications"><button>Messages</button></Link>
+        {user && (
+          <>
+            <span style={{ marginLeft: 8 }} />
+            <Link to="/notifications"><button>Messages</button></Link>
+          </>
+        )}
       </section>
       <section className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))'}}>
         <div className="card">
@@ -31,11 +35,13 @@ export default function HomePage() {
           <h3>Confidence Builder</h3>
           <p>Track weekly wins & reflections.</p>
         </div>
-        <div className="card">
-          <h3>Messages</h3>
-          <p>DM friends or chat with your groups.</p>
-          <Link to="/notifications"><button>Open</button></Link>
-        </div>
+        {user && (
+          <div className="card">
+            <h3>Messages</h3>
+            <p>DM friends or chat with your groups.</p>
+            <Link to="/notifications"><button>Open</button></Link>
+          </div>
+        )}
       </section>
     </div>
   );

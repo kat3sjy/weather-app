@@ -22,7 +22,7 @@ const AREA_OPTIONS = ['Gaming', 'Esports', 'Game Dev', 'Tech Conventions', 'Spor
 const EXPERIENCE_LEVELS = ['Student', 'Early Career', 'Mid Career', 'Senior', 'Leader'];
 
 export default function OnboardingPage() {
-  const { user, registerUser } = useUserStore() as any;
+  const { user, registerUser, getUserByUsername, users } = useUserStore() as any;
   const [step, setStep] = useState(0);
   const existingCreds = getStoredCredentials();
   const [form, setForm] = useState<FormState>({
@@ -93,6 +93,12 @@ export default function OnboardingPage() {
     if (![0,1,2,3,4].every(stepValid)) return;
     const uname = form.username.trim();
     if (!/^[a-zA-Z0-9_-]{3,24}$/.test(uname)) { setUsernameError('Invalid username'); return; }
+    // Uniqueness check
+    const taken = getUserByUsername(uname.toLowerCase());
+    if (taken) {
+      setUsernameError('Username already taken');
+      return;
+    }
     const pwdProblems = validatePassword(form.password);
     const mismatch = form.password !== form.passwordConfirm;
     if (pwdProblems.length || mismatch) { setPwdIssues([...pwdProblems, ...(mismatch? ['Passwords do not match']: [])]); return; }
@@ -124,7 +130,13 @@ export default function OnboardingPage() {
             setUsernameTouched(true);
             const val = e.target.value;
             setForm((f: FormState) => ({ ...f, username: val }));
-            setUsernameError(/^[a-zA-Z0-9_-]{3,24}$/.test(val) ? '' : '3-24 letters, numbers, _ or -');
+            if (!/^[a-zA-Z0-9_-]{3,24}$/.test(val)) {
+              setUsernameError('3-24 letters, numbers, _ or -');
+            } else if (getUserByUsername(val.toLowerCase())) {
+              setUsernameError('Username already taken');
+            } else {
+              setUsernameError('');
+            }
           }}
           placeholder="yourhandle"
         />
@@ -297,7 +309,6 @@ export default function OnboardingPage() {
           </p>
         </div>
       </FormRow>
-      <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
       <button onClick={handleSubmit} disabled={![0,1,2,3,4].every(stepValid)}>Finish & Create Profile</button>
     </div>
   ];

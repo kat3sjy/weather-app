@@ -33,6 +33,7 @@ interface UserState {
   acceptConnectionRequest: (sourceId: string) => void;
   rejectConnectionRequest: (sourceId: string) => void;
   cancelConnectionRequest: (targetId: string) => void;
+  removeConnection: (targetId: string) => void;
   getUserByUsername: (username: string) => User | undefined;
 }
 
@@ -92,16 +93,43 @@ const useUserBase = create((set: (partial: Partial<UserState>) => void, get: () 
     if (!user || user.id === targetId) return;
     const alreadyConnected = user.connections?.includes(targetId);
     const pending = user.outgoingRequests?.includes(targetId);
-    if (alreadyConnected || pending) return;
-    const updatedUsers = users.map(u => {
-      if (u.id === user.id) {
-        return { ...u, outgoingRequests: [...(u.outgoingRequests||[]), targetId] };
-      }
-      if (u.id === targetId) {
-        return { ...u, incomingRequests: [...(u.incomingRequests||[]), user.id] };
-      }
-      return u;
-    });
+    const target = users.find(u => u.id === targetId);
+    if (!target) return;
+    // If target already requested this user, auto-accept (mutual request)
+    const targetRequestedAlready = target.outgoingRequests?.includes(user.id) || target.incomingRequests?.includes(user.id);
+    let updatedUsers;
+    if (targetRequestedAlready) {
+      updatedUsers = users.map(u => {
+        if (u.id === user.id) {
+          return {
+            ...u,
+            incomingRequests: (u.incomingRequests||[]).filter(id => id !== targetId),
+            connections: [...new Set([...(u.connections||[]), targetId])],
+            outgoingRequests: (u.outgoingRequests||[]).filter(id => id !== targetId)
+          };
+        }
+        if (u.id === targetId) {
+          return {
+            ...u,
+            incomingRequests: (u.incomingRequests||[]).filter(id => id !== user.id),
+            outgoingRequests: (u.outgoingRequests||[]).filter(id => id !== user.id),
+            connections: [...new Set([...(u.connections||[]), user.id])]
+          };
+        }
+        return u;
+      });
+    } else {
+      if (alreadyConnected || pending) return;
+      updatedUsers = users.map(u => {
+        if (u.id === user.id) {
+          return { ...u, outgoingRequests: [...(u.outgoingRequests||[]), targetId] };
+        }
+        if (u.id === targetId) {
+          return { ...u, incomingRequests: [...(u.incomingRequests||[]), user.id] };
+        }
+        return u;
+      });
+    }
     persistCurrentUserId(user.id, updatedUsers);
     set({ users: updatedUsers, user: updatedUsers.find(u => u.id === user.id) || null });
   },
@@ -152,6 +180,22 @@ const useUserBase = create((set: (partial: Partial<UserState>) => void, get: () 
       }
       if (u.id === targetId) {
         return { ...u, incomingRequests: (u.incomingRequests || []).filter(id => id !== user.id) };
+      }
+      return u;
+    });
+    persistCurrentUserId(user.id, updatedUsers);
+    set({ users: updatedUsers, user: updatedUsers.find(u => u.id === user.id) || null });
+  },
+  removeConnection: (targetId: string) => {
+    const { user, users } = get();
+    if (!user) return;
+    if (!(user.connections || []).includes(targetId)) return;
+    const updatedUsers = users.map(u => {
+      if (u.id === user.id) {
+        return { ...u, connections: (u.connections || []).filter(id => id !== targetId) };
+      }
+      if (u.id === targetId) {
+        return { ...u, connections: (u.connections || []).filter(id => id !== user.id) };
       }
       return u;
     });

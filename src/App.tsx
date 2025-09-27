@@ -38,10 +38,11 @@ export default function App() {
 function NavBar() {
   const { user, logout } = useUserStore((s: any) => ({ user: s.user, logout: s.logout }));
   const navigate = useNavigate();
+  const incomingCount = user?.incomingRequests?.length || 0;
   const authedLinks = [
     { to: '/', label: 'Home' },
     { to: '/explore', label: 'Explore' },
-    { to: '/connections', label: 'Connections' },
+    { to: '/connections', label: `Connections${incomingCount ? ` (${incomingCount})` : ''}` },
     { to: '/friends', label: 'Friends' },
     { to: '/settings', label: 'Settings' }
   ];
