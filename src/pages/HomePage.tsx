@@ -11,7 +11,7 @@ export default function HomePage() {
         {!user && (
           <div style={{display:'flex', gap:'1rem', marginTop:'1rem'}}>
             <Link to="/login"><button style={{background:'#ff4fa3'}}>Sign In</button></Link>
-            <Link to="/onboarding"><button>Create Account</button></Link>
+            <Link to="/signup"><button>Create Account</button></Link>
           </div>
         )}
         {user && <Link to={`/profile/${user.username}`}><button>Your Profile</button></Link>}
@@ -45,7 +45,7 @@ export default function HomePage() {
           <div className="card" style={{opacity:.85}}>
             <h3>Members-Only Features</h3>
             <p style={{fontSize:'.75rem'}}>Sign in to see suggested members, send connection requests, and unlock messaging.</p>
-            <Link to="/onboarding"><button>Get Started</button></Link>
+            <Link to="/signup"><button>Get Started</button></Link>
           </div>
         )}
       </section>

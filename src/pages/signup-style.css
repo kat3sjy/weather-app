@@ -1,0 +1,405 @@
+/* Import Jua font */
+@import url("https://fonts.googleapis.com/css?family=Jua:400");
+
+/* Full screen design - no scaling, use viewport dimensions */
+.signup {
+  background-color: #040926;
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.signup .main-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-color: #040926;
+}
+
+.signup .group {
+  height: 11vh; /* ~148px equivalent */
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.signup .rectangle {
+  background-color: #2d2d6a;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.signup .navigation-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5vw; /* ~87px equivalent */
+}
+
+.signup .nav-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.signup .nav-button:hover {
+  transform: translateY(-1px);
+}
+
+.signup .nav-text {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(12px, 1.4vw, 24px); /* Responsive nav text */
+  font-weight: 400;
+  letter-spacing: clamp(1px, 0.14vw, 2.4px);
+  line-height: normal;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.signup .nav-box {
+  background-color: #4e4e9b;
+  border-radius: clamp(4px, 0.6vw, 10px);
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(60px, 9vw, 155px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.signup .bell-button,
+.signup .profile-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+}
+
+.signup .bell-button:hover,
+.signup .profile-button:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.signup .bell-button {
+  right: 10vw; /* ~174px equivalent */
+}
+
+.signup .profile-button {
+  right: 5vw; /* ~87px equivalent */
+}
+
+.signup .image {
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(20px, 2.8vh, 37px);
+  object-fit: cover;
+}
+
+.signup .div {
+  background-color: #8888b7;
+  border-radius: 50%;
+  height: clamp(20px, 2.8vh, 37px);
+  width: clamp(20px, 2.8vh, 37px);
+}
+
+.signup .rectangle-2 {
+  background-color: #2d2d6a;
+  border-radius: 4.3vw; /* ~75px equivalent */
+  height: 60vh; /* Increased height to accommodate confirm password field */
+  left: 12.6%; /* ~218px equivalent */
+  position: absolute;
+  top: 17vh; /* ~262px equivalent */
+  width: 74.7%; /* ~1291px equivalent */
+}
+
+.signup .text-wrapper {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(32px, 4.6vw, 80px); /* Responsive title size */
+  font-weight: 400;
+  left: clamp(5%, 19.1%, 25%); /* Responsive positioning */
+  letter-spacing: clamp(2px, 0.46vw, 8px); /* Responsive spacing */
+  line-height: normal;
+  position: absolute;
+  top: clamp(18vh, 20vh, 24vh); /* Responsive vertical position */
+}
+
+.signup .username-label {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.8vw, 28px); /* Responsive with min/max bounds */
+  font-weight: 400;
+  position: absolute;
+  left: clamp(5%, 19.2%, 25%); /* Better responsive alignment */
+  top: clamp(26vh, 29vh, 33vh); /* Responsive vertical positioning */
+  text-transform: lowercase;
+}
+
+.signup .rectangle-3 {
+  background-color: #8888b7;
+  border-radius: clamp(8px, 1.2vw, 20px); /* Responsive border radius */
+  height: clamp(40px, 5.5vh, 70px); /* Better height scaling */
+  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  position: absolute;
+  top: clamp(29vh, 32vh, 36vh); /* Responsive vertical positioning */
+  width: clamp(60%, 61.6%, 90%); /* Better width scaling */
+}
+
+.signup .username-input {
+  border: none;
+  outline: none;
+  padding: clamp(8px, 1vh, 16px) clamp(12px, 1.5vw, 24px); /* Responsive padding */
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.6vw, 24px); /* Better responsive text size */
+  color: #ffffff;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: inherit;
+}
+
+.signup .username-input::placeholder {
+  color: transparent; /* Hide any placeholder */
+}
+
+.signup .password-label {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.8vw, 28px); /* Responsive with min/max bounds */
+  font-weight: 400;
+  position: absolute;
+  left: clamp(5%, 19.2%, 25%); /* Better responsive alignment */
+  top: clamp(36vh, 39vh, 43vh); /* Responsive vertical positioning */
+  text-transform: lowercase;
+}
+
+.signup .rectangle-4 {
+  background-color: #8888b7;
+  border-radius: clamp(8px, 1.2vw, 20px); /* Responsive border radius */
+  height: clamp(40px, 5.5vh, 70px); /* Better height scaling */
+  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  position: absolute;
+  top: clamp(39vh, 42vh, 46vh); /* Responsive vertical positioning */
+  width: clamp(60%, 61.6%, 90%); /* Better width scaling */
+}
+
+.signup .password-input {
+  border: none;
+  outline: none;
+  padding: clamp(8px, 1vh, 16px) clamp(12px, 1.5vw, 24px); /* Responsive padding */
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.6vw, 24px); /* Better responsive text size */
+  color: #ffffff;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: inherit;
+}
+
+.signup .password-input::placeholder {
+  color: transparent; /* Hide any placeholder */
+}
+
+.signup .confirm-password-label {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.8vw, 28px); /* Responsive with min/max bounds */
+  font-weight: 400;
+  position: absolute;
+  left: clamp(5%, 19.2%, 25%); /* Better responsive alignment */
+  top: clamp(46vh, 49vh, 53vh); /* Responsive vertical positioning */
+  text-transform: lowercase;
+}
+
+.signup .rectangle-5 {
+  background-color: #8888b7;
+  border-radius: clamp(8px, 1.2vw, 20px); /* Responsive border radius */
+  height: clamp(40px, 5.5vh, 70px); /* Better height scaling */
+  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  position: absolute;
+  top: clamp(49vh, 52vh, 56vh); /* Responsive vertical positioning */
+  width: clamp(60%, 61.6%, 90%); /* Better width scaling */
+}
+
+.signup .confirm-password-input {
+  border: none;
+  outline: none;
+  padding: clamp(8px, 1vh, 16px) clamp(12px, 1.5vw, 24px); /* Responsive padding */
+  font-family: "Jua", Helvetica;
+  font-size: clamp(14px, 1.6vw, 24px); /* Better responsive text size */
+  color: #ffffff;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: inherit;
+}
+
+.signup .confirm-password-input::placeholder {
+  color: transparent; /* Hide any placeholder */
+}
+
+.signup .back-button,
+.signup .next-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: absolute;
+  transition: all 0.2s ease;
+}
+
+.signup .back-button {
+  left: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  top: clamp(59vh, 62vh, 66vh); /* Responsive vertical position */
+  width: clamp(80px, 9vw, 140px); /* Better button width scaling */
+  height: clamp(35px, 4.2vh, 55px); /* Better height scaling */
+}
+
+.signup .next-button {
+  right: clamp(5%, 19.2%, 25%); /* Responsive positioning */
+  top: clamp(59vh, 62vh, 66vh); /* Responsive vertical position */
+  width: clamp(80px, 9vw, 140px); /* Better button width scaling */
+  height: clamp(35px, 4.2vh, 55px); /* Better height scaling */
+}
+
+.signup .rectangle-back {
+  background-color: #4e4e9b;
+  border-radius: clamp(6px, 0.87vw, 15px); /* Responsive border radius */
+  height: 100%;
+  width: 100%;
+}
+
+.signup .rectangle-next {
+  background-color: #4e4e9b;
+  border-radius: clamp(6px, 0.87vw, 15px); /* Responsive border radius */
+  height: 100%;
+  width: 100%;
+}
+
+.signup .back-button:hover .rectangle-back,
+.signup .next-button:hover .rectangle-next {
+  background-color: #5e5eab;
+}
+
+.signup .back-button:disabled .rectangle-back,
+.signup .next-button:disabled .rectangle-next {
+  background-color: #3e3e8b;
+  opacity: 0.6;
+}
+
+.signup .text-wrapper-2 {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(12px, 1.8vw, 26px); /* Responsive button text */
+  font-weight: 400;
+  letter-spacing: clamp(1px, 0.18vw, 3px); /* Responsive spacing */
+  line-height: normal;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.signup .text-wrapper-3 {
+  color: #ffffff;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(12px, 1.8vw, 26px); /* Responsive button text */
+  font-weight: 400;
+  letter-spacing: clamp(1px, 0.18vw, 3px); /* Responsive spacing */
+  line-height: normal;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Error message styling */
+.signup .error-message {
+  color: #ff4444;
+  font-family: "Jua", Helvetica;
+  font-size: clamp(12px, 1.4vw, 20px); /* Responsive error text */
+  font-weight: 400;
+  position: absolute;
+  left: clamp(5%, 19.2%, 25%);
+  top: clamp(67vh, 70vh, 74vh); /* Position below buttons */
+  letter-spacing: 1px;
+  background: rgba(255, 68, 68, 0.1);
+  padding: clamp(4px, 0.6vh, 8px) clamp(8px, 1vw, 16px);
+  border-radius: clamp(4px, 0.4vw, 8px);
+  border-left: 2px solid #ff4444;
+  max-width: clamp(60%, 61.6%, 90%);
+  word-wrap: break-word;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1024px) {
+  .signup .navigation-container {
+    gap: 4vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup .navigation-container {
+    gap: 3vw;
+  }
+  
+  .signup .rectangle-2 {
+    height: 65vh; /* More height on mobile */
+  }
+  
+  .signup .nav-text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup .navigation-container {
+    flex-direction: column;
+    gap: 1vh;
+  }
+  
+  .signup .rectangle-2 {
+    left: 5%;
+    width: 90%;
+    height: 70vh;
+  }
+}

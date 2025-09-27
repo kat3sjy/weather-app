@@ -20,7 +20,7 @@ export default function ProfilePage() {
         <p style={{fontSize:'.8rem', opacity:.75}}>Create an account or sign in to view member profiles and connect.</p>
         <div style={{display:'flex', gap:'.75rem', marginTop:'1rem'}}>
           <a href="/login"><button>Sign In</button></a>
-          <a href="/onboarding"><button>Create Account</button></a>
+          <a href="/signup"><button>Create Account</button></a>
         </div>
       </div>
     );

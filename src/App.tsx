@@ -6,6 +6,7 @@ import ExplorePage from './pages/ExplorePage';
 import OnboardingPage from './pages/OnboardingPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import ConnectionsPage from './pages/ConnectionsPage';
 import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
@@ -20,6 +21,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/profile/:username" element={<ProfilePage />} />
             <Route path="/explore" element={<ExplorePage />} />
@@ -49,7 +51,7 @@ function NavBar() {
   const publicLinks = [
     { to: '/', label: 'Home' },
     { to: '/login', label: 'Sign In' },
-    { to: '/onboarding', label: 'Join Now' }
+    { to: '/signup', label: 'Join Now' }
   ];
   const links = user ? authedLinks : publicLinks;
   return (
