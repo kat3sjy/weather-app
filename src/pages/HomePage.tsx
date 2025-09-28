@@ -14,9 +14,9 @@ export default function HomePage() {
             🎉 WELCOME 🎉
           </h1>
           <p className="hero-description">
-            Technova is a safe space for underrepresented groups to connect with 
+            Ctrl+Femme is a safe space for underrepresented groups to connect with 
             others in gaming, tech conventions, and sports. Join a community built by diversity. 
-            Technova is where lifelong friendships begin!
+            Ctrl+Femme is where lifelong friendships begin!
           </p>
           
           <div className="hero-actions">
@@ -59,7 +59,7 @@ export default function HomePage() {
         <div className="illustration-container">
           <img 
             src="/Group_2.png" 
-            alt="Technova Community Illustration" 
+            alt="Ctrl+Femme Community Illustration" 
             className="community-illustration"
           />
         </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
         
         <div className="community-text">
           <p>
-            Technova's goals are simple: to create a safe, supportive, and fun space where 
+            Ctrl+Femme's goals are simple: to create a safe, supportive, and fun space where 
             underrepresented groups in gaming, tech, and sports can connect, team up, and thrive.
           </p>
           <p>
@@ -95,9 +95,9 @@ export default function HomePage() {
             <img src="/HP_Character_Active.png" alt="HP Character" className="card-icon-img" />
 >>>>>>> b7d5e9e (commit)
           </div>
-          <h3>What is Technova?</h3>
+          <h3>What is Ctrl+Femme?</h3>
           <p>
-            Technova is a free social networking platform specifically 
+            Ctrl+Femme is a free social networking platform specifically 
             made for underrepresented groups in gaming, tech, and sports to find and 
             connect with each other.
           </p>
@@ -109,7 +109,7 @@ export default function HomePage() {
           </div>
           <h3>How can I make friends?</h3>
           <p>
-            Technova helps you find other community members to connect with 
+            Ctrl+Femme helps you find other community members to connect with 
             based on preferences, skill level, similar interests, and region.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function HomePage() {
           <div className="card-icon">
             <img src="/HP_Character_Active.png" alt="HP Character" className="card-icon-img" />
           </div>
-          <h3>Why was Technova made for diversity?</h3>
+          <h3>Why was Ctrl+Femme made for diversity?</h3>
           <p>
             As smaller groups within the gaming, tech, and sports worlds, underrepresented 
             people often find it difficult to make friends of similar backgrounds. 
@@ -133,7 +133,7 @@ export default function HomePage() {
           </div>
           <h3>How can I find connections?</h3>
           <p>
-            Technova helps you find other community members to connect with 
+            Ctrl+Femme helps you find other community members to connect with 
             based on preferences, skill level, similar interests, and region.
           </p>
         </div>

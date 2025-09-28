@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { validatePassword, hashPassword, storeCredentials, getStoredCredentials } from '../utils/password';
-import "./signup-style.css";
+import "./home-style.css";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -66,7 +66,11 @@ export default function SignUpPage() {
 
       // Hash password and store credentials
       const passwordHash = await hashPassword(form.password);
-      storeCredentials(form.username.trim().toLowerCase(), passwordHash);
+      storeCredentials({
+        username: form.username.trim().toLowerCase(),
+        passwordHash,
+        createdAt: new Date().toISOString()
+      });
 
       // Create user with basic info (they can complete profile later)
       const newUser = {
@@ -111,100 +115,83 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="signup" data-model-id="1:3">
-      <div className="main-container">
-        <div className="group">
-          <div className="rectangle" />
+    <div className="home-page">
+      {/* Auth Section */}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Join Ctrl+Femme
+          </h1>
+          <p className="hero-description">
+            Create your account and join a community built by diversity. Connect with others who share your passions in gaming, tech, and sports.
+          </p>
+          
+          <form onSubmit={handleSignUp} className="auth-form">
+            <div className="form-group">
+              <label className="form-label">Username*</label>
+              <input
+                type="text"
+                className="form-input"
+                value={form.username}
+                onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
+                required
+                disabled={isLoading}
+                placeholder="Choose a username"
+              />
+            </div>
 
-          <div className="navigation-container">
-            <button className="nav-button" onClick={handleHome}>
-              <div className="nav-text">HOME</div>
-              <div className="nav-box" />
-            </button>
-            <button className="nav-button" onClick={() => navigate('/login')}>
-              <div className="nav-text">SIGN IN</div>
-              <div className="nav-box" />
-            </button>
-            <button className="nav-button" onClick={() => navigate('/signup')}>
-              <div className="nav-text">JOIN NOW</div>
-              <div className="nav-box" />
-            </button>
-          </div>
+            <div className="form-group">
+              <label className="form-label">Password*</label>
+              <input
+                type="password"
+                className="form-input"
+                value={form.password}
+                onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+                required
+                disabled={isLoading}
+                autoComplete="new-password"
+                placeholder="Create a password"
+              />
+            </div>
 
-          <button className="bell-button">
-            <img
-              className="image"
-              alt="Notifications"
-              src="https://c.animaapp.com/tyFZdqrz/img/image-1@2x.png"
-            />
-          </button>
+            <div className="form-group">
+              <label className="form-label">Confirm Password*</label>
+              <input
+                type="password"
+                className="form-input"
+                value={form.confirmPassword}
+                onChange={(e) => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                required
+                disabled={isLoading}
+                autoComplete="new-password"
+                placeholder="Confirm your password"
+              />
+            </div>
 
-          <button className="profile-button">
-            <div className="div" />
-          </button>
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+
+            <div className="form-actions">
+              <Link to="/" className="hero-btn secondary">
+                Back to Home
+              </Link>
+              <button 
+                type="submit"
+                className="hero-btn primary"
+                disabled={isLoading || !form.username.trim() || !form.password || !form.confirmPassword}
+              >
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+            </div>
+
+            <div className="auth-switch">
+              <p>Already have an account? <Link to="/login" className="auth-link">Sign in here</Link></p>
+            </div>
+          </form>
         </div>
-
-        <div className="rectangle-2" />
-
-        <div className="text-wrapper">SIGN UP</div>
-
-        <div className="username-label">username*</div>
-        <div className="rectangle-3">
-          <input
-            type="text"
-            className="username-input"
-            value={form.username}
-            onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
-            required
-            disabled={isLoading}
-          />
-        </div>
-
-        <div className="password-label">password*</div>
-        <div className="rectangle-4">
-          <input
-            type="password"
-            className="password-input"
-            value={form.password}
-            onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-            required
-            disabled={isLoading}
-            autoComplete="new-password"
-          />
-        </div>
-
-        <div className="confirm-password-label">confirm password*</div>
-        <div className="rectangle-5">
-          <input
-            type="password"
-            className="confirm-password-input"
-            value={form.confirmPassword}
-            onChange={(e) => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
-            required
-            disabled={isLoading}
-            autoComplete="new-password"
-          />
-        </div>
-
-        <button className="back-button" onClick={handleBack} disabled={isLoading}>
-          <div className="rectangle-back" />
-          <div className="text-wrapper-2">back</div>
-        </button>
-
-        <button 
-          className="next-button" 
-          onClick={handleNext}
-          disabled={isLoading || !form.username.trim() || !form.password || !form.confirmPassword}
-        >
-          <div className="rectangle-next" />
-          <div className="text-wrapper-3">{isLoading ? 'creating account...' : 'next'}</div>
-        </button>
-
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
       </div>
     </div>
   );

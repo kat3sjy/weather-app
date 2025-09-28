@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { hashPassword, getStoredCredentials } from '../utils/password';
-import "./style.css";
+import "./home-style.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -106,89 +106,69 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login" data-model-id="1:2">
-      <div className="main-container">
-        <div className="group">
-          <div className="rectangle" />
+    <div className="home-page">
+      {/* Auth Section */}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Sign In
+          </h1>
+          <p className="hero-description">
+            Welcome back to Ctrl+Femme! Sign in to connect with your community and continue building meaningful relationships.
+          </p>
+          
+          <form onSubmit={handleLogin} className="auth-form">
+            <div className="form-group">
+              <label className="form-label">Username*</label>
+              <input
+                type="text"
+                className="form-input"
+                value={form.username}
+                onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
+                required
+                disabled={isLoading}
+                placeholder="Enter your username"
+              />
+            </div>
 
-          <div className="navigation-container">
-            <button className="nav-button" onClick={handleHome}>
-              <div className="nav-text">HOME</div>
-              <div className="nav-box" />
-            </button>
-            <button className="nav-button" onClick={() => navigate('/login')}>
-              <div className="nav-text">SIGN IN</div>
-              <div className="nav-box" />
-            </button>
-            <button className="nav-button" onClick={() => navigate('/signup')}>
-              <div className="nav-text">JOIN NOW</div>
-              <div className="nav-box" />
-            </button>
-          </div>
+            <div className="form-group">
+              <label className="form-label">Password*</label>
+              <input
+                type="password"
+                className="form-input"
+                value={form.password}
+                onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+                required
+                disabled={isLoading}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+              />
+            </div>
 
-          <button className="bell-button" onClick={handleNotifications}>
-            <img
-              className="image"
-              alt="Notifications"
-              src="https://c.animaapp.com/tyFZdqrz/img/image-1@2x.png"
-            />
-          </button>
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
 
-          <button className="profile-button" onClick={handleProfile}>
-            <div className="div" />
-          </button>
+            <div className="form-actions">
+              <Link to="/" className="hero-btn secondary">
+                Back to Home
+              </Link>
+              <button 
+                type="submit"
+                className="hero-btn primary"
+                disabled={isLoading || !form.username.trim() || !form.password}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </div>
+
+            <div className="auth-switch">
+              <p>Don't have an account? <Link to="/signup" className="auth-link">Create one here</Link></p>
+            </div>
+          </form>
         </div>
-
-        <div className="rectangle-2" />
-
-        <div className="text-wrapper">LOGIN</div>
-
-        <div className="username-label">username*</div>
-        <div className="rectangle-3">
-          <input
-            type="text"
-            className="username-input"
-            value={form.username}
-            onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))}
-            required
-            disabled={isLoading}
-          />
-        </div>
-
-        <div className="password-label">password*</div>
-        <div className="rectangle-4">
-          <input
-            type="password"
-            className="password-input"
-            value={form.password}
-            onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-            required
-            disabled={isLoading}
-            autoComplete="current-password"
-          />
-        </div>
-
-        <button className="back-button" onClick={handleBack} disabled={isLoading}>
-          <div className="rectangle-5" />
-          <div className="text-wrapper-2">back</div>
-        </button>
-
-        <button 
-          className="next-button" 
-          onClick={handleNext}
-          disabled={isLoading || !form.username.trim() || !form.password}
-        >
-          <div className="rectangle-6" />
-          <div className="text-wrapper-3">{isLoading ? 'signing in...' : 'next'}</div>
-        </button>
-
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-
-        
       </div>
     </div>
   );
