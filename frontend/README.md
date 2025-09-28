@@ -77,6 +77,11 @@ Key notes
   - pages/Chat.tsx: Join Shared Demo Room with POST→GET fallback.
 - Env: frontend/.env.local -> VITE_API_BASE=http://localhost:3000.
 
+Note: In development, run the single UI from the repo root:
+- npm run dev (starts backend on 3000 and root UI on 5173)
+- Open http://localhost:5173/chat
+- The frontend/ app is no longer started in dev; its chat code has been ported to the root UI.
+
 How to run
 - Backend:
   cd backend && npm run dev

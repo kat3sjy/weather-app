@@ -13,6 +13,7 @@ import { UserStoreProvider } from './store/userStore';
 import NotificationsPage from './pages/NotificationsPage';
 import FriendsPage from './pages/FriendsPage';
 import AIDemoPage from './pages/AIDemoPage';
+import ChatPage from './pages/Chat';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error?: Error }> {
   state = { error: undefined as Error | undefined };
@@ -38,18 +39,19 @@ export default function App() {
         <div>
           <NavBar />
           <div className="container">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/profile/:username" element={<ProfilePage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/connections" element={<ConnectionsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/friends" element={<FriendsPage />} />
-            <Route path="/ai-demo" element={<AIDemoPage />} />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
+              <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/connections" element={<ConnectionsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/friends" element={<FriendsPage />} />
+              <Route path="/ai-demo" element={<AIDemoPage />} />
+              <Route path="/chat" element={<ChatPage />} />
             </Routes>
           </div>
           <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>
