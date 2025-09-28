@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "seed": "node scripts/seed.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "compat:demo": "node scripts/analyze-compatibility.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -14,6 +15,7 @@
     "express": "^4.19.2",
     "mongoose": "^8.6.0",
     "socket.io": "^4.7.5",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "mongodb": "^6.9.0"
   }
 }
