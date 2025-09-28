@@ -73,6 +73,47 @@ app.get('/health/db', async (_req, res) => {
   });
 });
 
+// Dev portal showing both UIs on one port (3000)
+app.get('/dev', (_req, res) => {
+  const rootUrl = 'http://localhost:5174';   // root UI
+  const chatUrl = 'http://localhost:5173';   // frontend/chat UI
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Technova Dev Portal</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0b0f16; color: #e5e7eb; }
+    header { padding: 12px 16px; border-bottom: 1px solid #1f2937; display:flex; gap:16px; align-items:center; }
+    a { color: #93c5fd; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: calc(100vh - 52px); }
+    .pane { display:flex; flex-direction:column; }
+    .pane header { border-bottom: 1px solid #1f2937; }
+    iframe { flex: 1; border: 0; background: #111827; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Technova Dev Portal</strong>
+    <span>API: <code>http://localhost:3000</code></span>
+    <span>Root UI: <a href="${rootUrl}" target="_blank" rel="noreferrer">${rootUrl}</a></span>
+    <span>Chat UI: <a href="${chatUrl}" target="_blank" rel="noreferrer">${chatUrl}</a></span>
+  </header>
+  <div class="grid">
+    <div class="pane">
+      <header style="padding:8px 12px;">Root UI (5174)</header>
+      <iframe src="${rootUrl}"></iframe>
+    </div>
+    <div class="pane">
+      <header style="padding:8px 12px;">Chat UI (5173)</header>
+      <iframe src="${chatUrl}"></iframe>
+    </div>
+  </div>
+</body>
+</html>`);
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
