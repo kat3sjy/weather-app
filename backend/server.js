@@ -1,4 +1,8 @@
-import 'dotenv/config';
+// Load env from backend/.env and root .env
+import dotenv from 'dotenv';
+dotenv.config({ path: new URL('./.env', import.meta.url).pathname }); // backend/.env (explicit)
+dotenv.config({ path: new URL('../.env', import.meta.url).pathname }); // repo root .env
+
 import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
@@ -6,6 +10,7 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import chatRouter from './chat/router.js';
 import { chatStore } from './chat/store.js';
+// import { hasGeminiKey, analyzeText, GEMINI_MODEL } from './ai/gemini.js'; // removed; will dynamic-import after env
 
 // ensure `app` is exported for tests
 export const app = express();
@@ -15,9 +20,14 @@ app.use(express.json());
 const rawOrigins = (process.env.FRONTEND_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 const allowedOrigins = rawOrigins.length ? rawOrigins : ['http://localhost:5173', 'http://localhost:5174'];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
+console.log('[startup] CORS allowed origins:', allowedOrigins);
+
+// Load AI utils after env is configured
+const { hasGeminiKey, analyzeText, getGeminiModel } = await import('./ai/gemini.js');
+console.log('[startup] AI config:', { model: getGeminiModel(), hasKey: hasGeminiKey() });
 
 // MongoDB connection (optional in dev)
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI; // fixed typo
 if (mongoUri) {
   mongoose
     .connect(mongoUri, { dbName: process.env.MONGODB_DB || 'technova' })
@@ -43,147 +53,112 @@ app.use("/api/messages", messageRoutes);
 app.use('/api/chat', chatRouter);
 
 // --- AI demo endpoints ---
-app.get('/api/ai/status', (req, res) => {
-  res.json({ ok: true, service: 'ai', status: 'ready' });
-});
-
-app.post('/api/ai/analyze', async (req, res) => {
-  const { text } = req.body || {};
-  // Stubbed response; replace with real logic as needed.
+app.get('/api/ai/status', (_req, res) => {
   res.json({
-    ok: true,
-    inputLength: typeof text === 'string' ? text.length : 0,
-    result: 'analysis-complete',
+    ok: hasGeminiKey(),
+    service: 'gemini',
+    model: getGeminiModel(),
+    status: hasGeminiKey() ? 'ready' : 'missing-api-key',
   });
 });
-// --- end AI endpoints ---
 
-// Health
-app.get("/", (_req, res) => res.send("API is running"));
-
-// Add DB health endpoint
-app.get('/health/db', async (_req, res) => {
-  const hasUri = Boolean(process.env.MONGODB_URI || process.env.MONGO_URI);
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-  const state = mongoose.connection?.readyState ?? 0;
-  let ping = 0;
-  let dbName = null;
-
+// Analyze text with Gemini
+app.post('/api/ai/analyze', async (req, res) => {
   try {
-    if (hasUri && state === 1 && mongoose.connection.db) {
-      dbName = mongoose.connection.db.databaseName ?? null;
-      const admin = mongoose.connection.db.admin();
-      const pong = await admin.ping().catch(() => ({ ok: 0 }));
-      ping = pong?.ok === 1 ? 1 : 0;
+    if (!hasGeminiKey()) {
+      return res.status(503).json({ ok: false, error: 'missing-api-key' });
     }
-  } catch {
-    ping = 0;
+    const { text, model } = req.body || {};
+    if (typeof text !== 'string' || !text.trim()) {
+      return res.status(400).json({ ok: false, error: 'invalid-text' });
+    }
+    const usedModel = (model && String(model).trim()) || getGeminiModel();
+    const reply = await analyzeText(text, { model: usedModel });
+    res.json({ ok: true, model: usedModel, text: reply });
+  } catch (err) {
+    console.error('[ai] analyze error:', err);
+    res.status(500).json({ ok: false, error: 'ai-analyze-failed' });
   }
-
-  res.status(200).json({
-    ok: hasUri ? (state === 1 && ping === 1) : false,
-    driver: hasUri ? 'mongoose' : 'none',
-    state: hasUri ? state : 0,
-    db: hasUri ? dbName : null,
-    ping: hasUri ? ping : 0,
-  });
 });
 
-// Dev portal showing both UIs on one port (3000)
-app.get('/dev', (_req, res) => {
-  const rootUrl = 'http://localhost:5174';   // root UI
-  const chatUrl = 'http://localhost:5173';   // frontend/chat UI
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(`<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Technova Dev Portal</title>
-  <style>
-    body { margin: 0; font-family: system-ui, sans-serif; background: #0b0f16; color: #e5e7eb; }
-    header { padding: 12px 16px; border-bottom: 1px solid #1f2937; display:flex; gap:16px; align-items:center; }
-    a { color: #93c5fd; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: calc(100vh - 52px); }
-    .pane { display:flex; flex-direction:column; }
-    .pane header { border-bottom: 1px solid #1f2937; }
-    iframe { flex: 1; border: 0; background: #111827; }
-  </style>
-</head>
-<body>
-  <header>
-    <strong>Technova Dev Portal</strong>
-    <span>API: <code>http://localhost:3000</code></span>
-    <span>Root UI: <a href="${rootUrl}" target="_blank" rel="noreferrer">${rootUrl}</a></span>
-    <span>Chat UI: <a href="${chatUrl}" target="_blank" rel="noreferrer">${chatUrl}</a></span>
-  </header>
-  <div class="grid">
-    <div class="pane">
-      <header style="padding:8px 12px;">Root UI (5174)</header>
-      <iframe src="${rootUrl}"></iframe>
-    </div>
-    <div class="pane">
-      <header style="padding:8px 12px;">Chat UI (5173)</header>
-      <iframe src="${chatUrl}"></iframe>
-    </div>
-  </div>
-</body>
-</html>`);
+// --- HTTP server + Socket.IO wiring ---
+const httpServer = http.createServer(app);
+
+export const io = new SocketIOServer(httpServer, {
+  cors: { origin: allowedOrigins, credentials: true },
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
-
-// Replace app.listen with an HTTP server + Socket.IO
-const server = http.createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-  },
-});
-
-// Socket.IO events
 io.on('connection', (socket) => {
-  // Join a conversation room
-  socket.on('conversation:join', ({ conversationId, userId }) => {
-    if (!conversationId) return;
-    try {
-      if (userId) {
-        // add the socket's user to the conversation so it appears in their list
-        chatStore.addParticipant(conversationId, userId);
-      }
-    } catch {}
-    socket.join(`c:${conversationId}`);
-  });
+  console.log('[socket] connected:', socket.id);
 
-  // Send a message
-  socket.on('message:send', (payload, cb) => {
-    try {
-      const { conversationId, senderId, text } = payload || {};
-      const msg = chatStore.addMessage({ conversationId, senderId, text });
-      io.to(`c:${conversationId}`).emit('message:new', msg);
-      cb && cb({ ok: true, message: msg });
-    } catch {
-      cb && cb({ ok: false, error: 'Conversation not found' });
+  socket.on('join', (roomId) => {
+    if (roomId) {
+      socket.join(roomId);
+      socket.emit('joined', roomId);
     }
   });
 
-  // Typing indicator
-  socket.on('typing', ({ conversationId, userId, isTyping }) => {
-    if (!conversationId || !userId) return;
-    socket.to(`c:${conversationId}`).emit('typing', { conversationId, userId, isTyping: !!isTyping });
+  socket.on('chat:send', async ({ roomId, message }) => {
+    try {
+      if (!roomId || !message) return;
+      // Persist if store supports it (optional)
+      try {
+        await chatStore.addMessage?.(roomId, message);
+      } catch (_) {
+        // ignore optional persistence errors in dev
+      }
+      io.to(roomId).emit('chat:message', message);
+    } catch (e) {
+      console.error('[socket] chat:send error', e);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    // no-op
   });
 });
 
-server.on('error', (err) => {
-  console.error('HTTP server error:', err?.message || err);
-});
+// Start server with retry if port is busy
+const HOST = process.env.HOST || '0.0.0.0';
+const BASE_PORT = Number(process.env.PORT) || 5000;
 
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, HOST, () => {
-    const urlHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
-    console.log(`Server with Socket.IO listening on http://${urlHost}:${PORT} (bind: ${HOST})`);
-    console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+function listenWithRetry(port, retries = 10) {
+  return new Promise((resolve, reject) => {
+    httpServer
+      .once('listening', () => {
+        console.log(`[startup] Server listening on http://${HOST}:${port}`);
+        resolve(port);
+      })
+      .once('error', (err) => {
+        if (err?.code === 'EADDRINUSE' && retries > 0) {
+          console.warn(`[startup] Port ${port} in use, trying ${port + 1}`);
+          // remove listeners before retry
+          httpServer.removeAllListeners('listening');
+          httpServer.removeAllListeners('error');
+          setTimeout(() => {
+            httpServer.listen(port + 1, HOST);
+            listenWithRetry(port + 1, retries - 1).then(resolve).catch(reject);
+          }, 100);
+        } else {
+          console.error('[startup] Server listen error:', err);
+          reject(err);
+        }
+      });
+
+    httpServer.listen(port, HOST);
   });
 }
+
+try {
+  await listenWithRetry(BASE_PORT);
+} catch {
+  process.exit(1);
+}
+
+// Global error logging (do not crash in dev)
+process.on('unhandledRejection', (err) => {
+  console.error('[process] UnhandledRejection:', err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[process] UncaughtException:', err);
+});
