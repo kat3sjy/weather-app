@@ -42,6 +42,22 @@ app.use("/api/messages", messageRoutes);
 // Mount chat HTTP routes
 app.use('/api/chat', chatRouter);
 
+// --- AI demo endpoints ---
+app.get('/api/ai/status', (req, res) => {
+  res.json({ ok: true, service: 'ai', status: 'ready' });
+});
+
+app.post('/api/ai/analyze', async (req, res) => {
+  const { text } = req.body || {};
+  // Stubbed response; replace with real logic as needed.
+  res.json({
+    ok: true,
+    inputLength: typeof text === 'string' ? text.length : 0,
+    result: 'analysis-complete',
+  });
+});
+// --- end AI endpoints ---
+
 // Health
 app.get("/", (_req, res) => res.send("API is running"));
 

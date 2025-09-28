@@ -10,12 +10,16 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+        // If your backend does NOT use the /api prefix, uncomment:
+        // rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/socket.io': {
-        target: 'http://localhost:3000',
-        ws: true
+        target: 'http://localhost:5000',
+        ws: true,
+        changeOrigin: true,
       }
     }
   },
