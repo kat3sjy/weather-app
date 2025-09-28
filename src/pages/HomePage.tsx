@@ -1,8 +1,9 @@
 import { useUserStore } from '../store/userStore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
   const user = useUserStore(s => s.user);
+  const navigate = useNavigate();
   return (
     <div className="grid" style={{gap:'2rem'}}>
       <section className="card">
@@ -16,7 +17,7 @@ export default function HomePage() {
         )}
         {user && <Link to={`/profile/${user.username}`}><button>Your Profile</button></Link>}
         <span style={{ marginLeft: 8 }} />
-        <Link to="/notifications"><button>Messages</button></Link>
+        <Link to="/chat"><button>Messages</button></Link>
         <div style={{ marginTop: 12 }}>
           <Link to="/ai-demo">Try the AI Demo</Link>
         </div>
@@ -29,13 +30,13 @@ export default function HomePage() {
         <div className="card">
           <h3>Messages</h3>
           <p>DM friends or chat with your groups.</p>
-          <Link to="/notifications"><button>Open</button></Link>
+          <Link to="/chat"><button>Open</button></Link>
         </div>
         {user ? (
           <div className="card">
             <h3>Messages</h3>
             <p>DM friends or chat with your groups.</p>
-            <Link to="/notifications"><button>Open</button></Link>
+            <Link to="/chat"><button>Open</button></Link>
           </div>
         ) : (
           <div className="card" style={{opacity:.85}}>
