@@ -42,12 +42,14 @@ if (mongoUri) {
 
 // Routes
 import profileRoutes from "./routes/profile.js";
-import matchRoutes from "./routes/matches.js";
+import legacyMatchesRoutes from "./routes/matches.js";
 import messageRoutes from "./routes/messages.js";
+import matchRoutes from './routes/matchRoutes.js';
 
 app.use("/api/profile", profileRoutes);
-app.use("/api/matches", matchRoutes);
+app.use("/api/matches", legacyMatchesRoutes);
 app.use("/api/messages", messageRoutes);
+app.use('/api', matchRoutes);
 
 // Mount chat HTTP routes
 app.use('/api/chat', chatRouter);
