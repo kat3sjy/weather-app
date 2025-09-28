@@ -5,7 +5,7 @@
   "description": "Networking app frontend for underrepresented groups in male-dominated fields (gaming, tech conventions, sports).",
   "type": "module",
   "scripts": {
-    "predev": "kill-port 5173 3000 || true",
+    "predev": "kill-port 5173 || true && kill-port 3000 || true",
     "dev": "concurrently -k -n BACKEND,WEB -c blue,green \"npm:dev:backend\" \"npm:dev:web\"",
     "dev:backend": "npm --prefix backend run dev",
     "dev:web": "vite"
@@ -19,6 +19,7 @@
     "nanoid": "^5.0.7"
   },
   "devDependencies": {
+    "@babel/runtime": "^7.25.0",
     "concurrently": "^8.2.2",
     "kill-port": "^2.0.1",
     "@vitejs/plugin-react": "^4.2.0",

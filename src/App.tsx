@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { NavLink, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useUserStore } from './store/userStore';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
@@ -52,6 +52,8 @@ export default function App() {
               <Route path="/friends" element={<FriendsPage />} />
               <Route path="/ai-demo" element={<AIDemoPage />} />
               <Route path="/chat" element={<ChatPage />} />
+              {/* Redirect legacy /messages -> /chat */}
+              <Route path="/messages" element={<Navigate to="/chat" replace />} />
             </Routes>
           </div>
           <footer>© {new Date().getFullYear()} Technova Networking • Empowering connection across gaming, tech, and sports</footer>

@@ -36,6 +36,20 @@ type Actions = {
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
+// Safe JSON fetch that surfaces non-JSON/error responses
+async function fetchJSON<T = any>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} for ${url}: ${text.slice(0, 200)}`);
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`Invalid JSON from ${url}: ${text.slice(0, 200)}`);
+  }
+}
+
 export const useChatStore = create<State & Actions>((set, get) => ({
   userId: (() => {
     const key = 'tn_user_id';
@@ -88,12 +102,17 @@ export const useChatStore = create<State & Actions>((set, get) => ({
     get().ensureSocket();
     set({ connecting: true, error: undefined });
     try {
-      // Try POST first, fallback to GET
-      let res = await fetch(`${API_BASE}/api/chat/rooms/shared`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-      if (!res.ok) res = await fetch(`${API_BASE}/api/chat/rooms/shared`);
-      const convo: Conversation = await res.json();
+      // Prefer POST; fallback to GET if server doesn't accept POST
+      let convo = await fetchJSON<Conversation>(`${API_BASE}/api/chat/rooms/shared`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(async () => {
+        return await fetchJSON<Conversation>(`${API_BASE}/api/chat/rooms/shared`);
+      });
+
       const { socket, userId } = get();
       socket?.emit('conversation:join', { conversationId: convo.id, userId });
+
       set(state => ({
         conversations: { ...state.conversations, [convo.id]: { ...convo, messages: convo.messages || [] } },
         activeConversationId: convo.id
@@ -111,14 +130,17 @@ export const useChatStore = create<State & Actions>((set, get) => ({
     get().ensureSocket();
     set({ connecting: true, error: undefined });
     try {
-      const res = await fetch(`${API_BASE}/api/chat/rooms/dm`, {
+      // Use shared room as the demo conversation (backend DM route not present)
+      let convo = await fetchJSON<Conversation>(`${API_BASE}/api/chat/rooms/shared`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(async () => {
+        return await fetchJSON<Conversation>(`${API_BASE}/api/chat/rooms/shared`);
       });
-      const convo: Conversation = await res.json();
+
       const { socket, userId } = get();
       socket?.emit('conversation:join', { conversationId: convo.id, userId });
+
       set(state => ({
         conversations: { ...state.conversations, [convo.id]: { ...convo, messages: convo.messages || [] } },
         activeConversationId: convo.id
@@ -135,16 +157,23 @@ export const useChatStore = create<State & Actions>((set, get) => ({
   sendMessage: async (text: string) => {
     const { activeConversationId, userId, socket } = get();
     if (!activeConversationId || !text.trim()) return;
-    // Try socket first, fallback to REST
-    socket?.emit('message:send', { conversationId: activeConversationId, userId, text });
+
+    // If socket is connected, emit only (avoid duplicate REST 400s)
+    if (socket?.connected) {
+      socket.emit('message:send', { conversationId: activeConversationId, userId, text });
+      return;
+    }
+
+    // Fallback to REST only when socket is not connected
     try {
-      await fetch(`${API_BASE}/api/chat/messages`, {
+      await fetchJSON(`${API_BASE}/api/chat/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId: activeConversationId, userId, text })
       });
-    } catch {
-      // ignore; server should have broadcast via socket
+    } catch (e: any) {
+      set({ error: e?.message || 'Failed to send message' });
+      throw e;
     }
   },
 
