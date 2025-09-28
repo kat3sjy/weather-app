@@ -33,6 +33,9 @@ export default function OnboardingPage() {
   const [pwdIssues, setPwdIssues] = useState<Array<string>>([]);
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  // Add local state for post-onboarding name selection
+  const [nameFirst, setNameFirst] = useState(user?.firstName || '');
+  const [nameLast, setNameLast] = useState(user?.lastName || '');
   
   // Validation helpers
   const stepValid = (current: number): boolean => {
@@ -286,7 +289,43 @@ export default function OnboardingPage() {
   ];
 
   if (user) {
-    return <div className="card"><h2>You're onboarded 🎉</h2><p>View your profile or explore others.</p></div>;
+    return (
+      <div className="card">
+        <h2>Choose your name</h2>
+        <div className="form-row">
+          <label>First Name</label>
+          <input
+            value={nameFirst}
+            onChange={(e) => setNameFirst(e.target.value)}
+            placeholder="First name"
+          />
+        </div>
+        <div className="form-row">
+          <label>Last Name (optional)</label>
+          <input
+            value={nameLast}
+            onChange={(e) => setNameLast(e.target.value)}
+            placeholder="Last name"
+          />
+        </div>
+        <p style={{ color: '#9aa4b2', fontSize: '.85rem' }}>
+          Preview: {(nameFirst + ' ' + nameLast).trim() || 'Your display name'}
+        </p>
+        <button
+          type="button"
+          onClick={() =>
+            setUser({
+              ...user,
+              firstName: nameFirst.trim(),
+              lastName: nameLast.trim()
+            })
+          }
+          style={{ marginTop: '.75rem' }}
+        >
+          Save
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -312,7 +351,7 @@ function FormRow({label, children}:{label:string; children:React.ReactNode}) {
 function Progress({value}:{value:number}) {
   return (
     <div style={{height:10, background:'#222a35', borderRadius:8, overflow:'hidden'}}>
-      <div style={{height:'100%', width:`${Math.round(value*100)}%`, background:'linear-gradient(90deg,#ff4fa3,#ff9bd2)'}} />
+      <div style={{height:'100%', width:`${Math.round(value*100)}%`, background:'linear-gradient(90deg,#ff4fa3,#ff9bd2)`}} />
     </div>
   );
 }
