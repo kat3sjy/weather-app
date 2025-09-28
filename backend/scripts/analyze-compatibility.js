@@ -53,10 +53,11 @@ function redactUri(u) {
   return String(u).replace(/(mongodb(\+srv)?:\/\/[^:@/]+):[^@/]+@/i, '$1:***@');
 }
 
-async function fetchUsers(db) {
+// Change: accept idsArg as a param so we can reuse from HTTP
+export async function fetchUsers(db, idsArgLocal) {
   const col = db.collection('users');
-  if (idsArg) {
-    const ids = idsArg.split(',')
+  if (idsArgLocal) {
+    const ids = idsArgLocal.split(',')
       .map(s => s.trim())
       .filter(Boolean)
       .map(s => {
@@ -84,7 +85,7 @@ function userLabel(u, label) {
   return `${label}${nm}${id}`;
 }
 
-function buildPrompt(u1, u2) {
+export function buildPrompt(u1, u2) {
   return [
     'You are a concise match analyst for cooperative gaming partners.',
     'Given two users with arrays of vibeTags (qualities/preferences), assess their compatibility.',
@@ -102,7 +103,7 @@ function buildPrompt(u1, u2) {
   ].join('\n');
 }
 
-async function callGemini(prompt) {
+export async function callGemini(prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }]}],
@@ -128,6 +129,18 @@ async function callGemini(prompt) {
   return text || JSON.stringify(data, null, 2);
 }
 
+// New: a reusable function for API and CLI
+export async function analyzeCompatibility(db, idsArgLocal) {
+  const users = await fetchUsers(db, idsArgLocal);
+  if (!users || users.length < 2) {
+    throw new Error('Need at least 2 users with non-empty vibeTags (or provide exactly two via --ids)');
+  }
+  const [u1, u2] = users.slice(0, 2);
+  const prompt = buildPrompt(u1, u2);
+  const output = await callGemini(prompt);
+  return { users: [u1, u2], output };
+}
+
 async function main() {
   console.log(`[compat] Connecting to MongoDB: ${redactUri(MONGO_URI)} db=${DB_NAME}`);
   const client = new MongoClient(MONGO_URI, { retryWrites: true, w: 'majority' });
@@ -135,17 +148,10 @@ async function main() {
     await client.connect();
     const db = client.db(DB_NAME);
 
-    const users = await fetchUsers(db);
-    if (!users || users.length < 2) {
-      console.error('Need at least 2 users with non-empty vibeTags (or provide exactly two via --ids)');
-      process.exitCode = 2;
-      return;
-    }
-    const [u1, u2] = users.slice(0, 2);
+    // Updated to pass idsArg explicitly
+    const { users, output } = await analyzeCompatibility(db, idsArg);
+    const [u1, u2] = users;
     console.log(`[compat] Comparing: ${userLabel(u1, 'A')} vs ${userLabel(u2, 'B')}`);
-
-    const prompt = buildPrompt(u1, u2);
-    const output = await callGemini(prompt);
 
     console.log('\n=== Compatibility Analysis ===');
     console.log(output);

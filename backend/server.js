@@ -6,6 +6,7 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import chatRouter from './chat/router.js';
 import { chatStore } from './chat/store.js';
+import compatRouter from './routes/compatibility.js';
 
 // ensure `app` is exported for tests
 export const app = express();
@@ -43,6 +44,9 @@ app.use('/api', matchRoutes);
 
 // Mount chat HTTP routes
 app.use('/api/chat', chatRouter);
+
+// Mount compatibility router
+app.use(compatRouter);
 
 // --- AI demo endpoints ---
 app.get('/api/ai/status', (req, res) => {
